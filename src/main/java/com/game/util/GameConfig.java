@@ -1,14 +1,14 @@
 package com.game.util;
 
 /**
- * Game configuration constants.
+ * Hằng số của trò chơi
  */
 public class GameConfig {
 
     // Window settings
     public static final int WINDOW_WIDTH = 1280;
     public static final int WINDOW_HEIGHT = 720;
-    public static final String WINDOW_TITLE = "Tower Defense 2D MVP";
+    public static final String WINDOW_TITLE = "Tower Defense";
 
     // Game settings
     public static final double TARGET_FPS = 60.0;
@@ -28,7 +28,7 @@ public class GameConfig {
     public static final float TOWER_SLOW_COST = 150f;
 
     public static final float TOWER_GUN_RANGE = 150f;
-    public static final float TOWER_GUN_FIRE_RATE = 1.0f; // shots per second
+    public static final float TOWER_GUN_FIRE_RATE = 1.0f; 
 
     public static final float TOWER_SLOW_RANGE = 200f;
     public static final float TOWER_SLOW_FIRE_RATE = 0.5f;
@@ -51,10 +51,8 @@ public class GameConfig {
     public static final int PROJECTILE_DAMAGE = 10;
 
     // Wave settings
-    public static final float WAVE_SPAWN_INTERVAL = 0.5f; // seconds between enemy spawns
-    public static final float WAVE_DELAY = 10f; // seconds between waves
-
+    public static final float WAVE_SPAWN_INTERVAL = 0.5f; // thời gian giữa hai con quái trong 1 đợt
+    public static final float WAVE_DELAY = 10f; // thời gian giữa hai sóng
     private GameConfig() {
-        // Private constructor to prevent instantiation
     }
 }

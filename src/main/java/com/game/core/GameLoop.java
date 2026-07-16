@@ -9,7 +9,7 @@ import javafx.animation.AnimationTimer;
 public class GameLoop {
 
     private static final double TARGET_FPS = 60.0;
-    private static final double FRAME_TIME = 1.0 / TARGET_FPS; // ~16.67ms per frame
+    private static final double FRAME_TIME = 1.0 / TARGET_FPS; 
 
     private final SceneManager sceneManager;
     private AnimationTimer animationTimer;
