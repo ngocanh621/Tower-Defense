@@ -1,0 +1,50 @@
+[
+  {
+    "waveNumber": 1,
+    "delayBefore": 2,
+    "enemies": [
+      {
+        "type": "GOBLIN",
+        "count": 5,
+        "spawnInterval": 0.5
+      }
+    ]
+  },
+  {
+    "waveNumber": 2,
+    "delayBefore": 10,
+    "enemies": [
+      {
+        "type": "GOBLIN",
+        "count": 10,
+        "spawnInterval": 0.4
+      },
+      {
+        "type": "ORC",
+        "count": 3,
+        "spawnInterval": 1.0
+      }
+    ]
+  },
+  {
+    "waveNumber": 3,
+    "delayBefore": 10,
+    "enemies": [
+      {
+        "type": "GOBLIN",
+        "count": 15,
+        "spawnInterval": 0.3
+      },
+      {
+        "type": "ORC",
+        "count": 5,
+        "spawnInterval": 0.8
+      },
+      {
+        "type": "DRAGON",
+        "count": 1,
+        "spawnInterval": 1.0
+      }
+    ]
+  }
+]
