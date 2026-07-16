@@ -1,7 +1,7 @@
 module com.game {
     requires javafx.controls;
     requires javafx.fxml;
-    requires javafx.graphics;
+    requires transitive javafx.graphics;
     requires com.google.gson;
 
     exports com.game.core;
