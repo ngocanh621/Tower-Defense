@@ -11,8 +11,13 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 /**
+<<<<<<< Updated upstream
  * Lớp quản lý và chuyển đổi màn hình
  * Đóng vai trò làm trung tâm điều phối trạng thái giữa Menu chính, Màn chơi chính và GameOver.
+=======
+ * Quản lý chuyển cảnh giữa Menu, GameScene và màn hình kết thúc.
+ * Đóng vai trò là bộ điều phối giao diện trung tâm
+>>>>>>> Stashed changes
  */
 public class SceneManager {
 
@@ -34,10 +39,17 @@ public class SceneManager {
         gc.fillRect(0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
 
         gc.setFill(Color.WHITE);
+<<<<<<< Updated upstream
         gc.setFont(Font.font("Arial", 64));
         gc.fillText("Tower Defense 2D", 300, 200);
 
         gc.setFont(Font.font("Arial", 24));
+=======
+        gc.setFont(javafx.scene.text.Font.font("Arial", 64));
+        gc.fillText(GameConfig.WINDOW_TITLE, 300, 200);
+
+        gc.setFont(javafx.scene.text.Font.font("Arial", Constants.HUD_FONT_SIZE + 8));
+>>>>>>> Stashed changes
         gc.fillText("Press SPACE to start game", 400, 400);
         gc.fillText("Press ESC to exit", 450, 450);
 
@@ -47,6 +59,7 @@ public class SceneManager {
         
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
+<<<<<<< Updated upstream
                 case SPACE:
                     switchToGameScene(); 
                     break;
@@ -55,11 +68,15 @@ public class SceneManager {
                     break;
                 default:
                     break;
+=======
+                case SPACE -> switchToGameScene();
+                case ESCAPE -> System.exit(0);
+                default -> {}
+>>>>>>> Stashed changes
             }
         });
 
         menuCanvas.requestFocus();
-
         return scene;
     }
 
@@ -78,21 +95,17 @@ public class SceneManager {
         Scene scene = new Scene(root, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
 
         scene.setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case ESCAPE:
-                    switchToMenuScene();
-                    break;
-                default:
-                    gameScene.handleKeyPress(event);
-                    break;
+            if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                switchToMenuScene();
+            } else {
+                gameScene.handleKeyPress(event);
             }
         });
 
-        scene.setOnMouseClicked(event -> gameScene.handleMouseClick(event));
-        scene.setOnMouseMoved(event -> gameScene.handleMouseMove(event));
+        scene.setOnMouseClicked(gameScene::handleMouseClick);
+        scene.setOnMouseMoved(gameScene::handleMouseMove);
 
         gameCanvas.requestFocus();
-
         return scene;
     }
 

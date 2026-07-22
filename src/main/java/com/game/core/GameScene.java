@@ -25,13 +25,20 @@ public class GameScene {
     }
 
     /**
+<<<<<<< Updated upstream
      * 
+=======
+     *.
+>>>>>>> Stashed changes
      * @param deltaTime 
      */
     public void update(double deltaTime) {
     }
 
+<<<<<<< Updated upstream
    
+=======
+>>>>>>> Stashed changes
     public void render() {
         gc.setFill(Color.web(Constants.COLOR_BACKGROUND));
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -71,10 +78,18 @@ public class GameScene {
 
         gc.setFill(Color.WHITE);
         gc.setFont(Font.font("Arial", 24));
+<<<<<<< Updated upstream
         gc.fillText("Game Scene (Testing Mode)", 50, 50);
         
         gc.setFont(Font.font("Arial", Constants.HUD_FONT_SIZE));
         gc.fillText("Grid Map: " + cols + "x" + rows + " cells (" + cellSize + "x" + cellSize + "px)", 50, 80);
         gc.fillText("Press ESC to return to Main Menu", 50, 110);
+=======
+        gc.fillText("Game Scene (Chế độ Thử nghiệm)", 50, 50);
+        
+        gc.setFont(Font.font("Arial", Constants.HUD_FONT_SIZE));
+        gc.fillText("Bản đồ lưới: " + cols + "x" + rows + " ô vuông (" + cellSize + "x" + cellSize + "px)", 50, 80);
+        gc.fillText("Nhấn ESC để quay lại Menu chính", 50, 110);
+>>>>>>> Stashed changes
     }
 }
