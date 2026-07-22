@@ -2,84 +2,149 @@ package com.game.core;
 
 import com.game.util.Constants;
 import com.game.util.GameConfig;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 /**
-<<<<<<< Updated upstream
- * Lớp quản lý và chuyển đổi màn hình
- * Đóng vai trò làm trung tâm điều phối trạng thái giữa Menu chính, Màn chơi chính và GameOver.
-=======
- * Quản lý chuyển cảnh giữa Menu, GameScene và màn hình kết thúc.
- * Đóng vai trò là bộ điều phối giao diện trung tâm
->>>>>>> Stashed changes
+ * Quản lý chuyển cảnh giữa menu, màn chơi và lưu trữ High Score.
  */
 public class SceneManager {
 
     private final Stage primaryStage;
     private GameScene currentGame;
+    private static final String HIGH_SCORE_FILE = "highscore.txt";
 
     public SceneManager(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
 
+    /**
+     * Tạo giao diện menu chính với tiêu đề, high score, nút bắt đầu và thoát.
+     */
     public Scene createMenuScene() {
-        BorderPane root = new BorderPane();
-        root.setStyle("-fx-background-color: " + Constants.COLOR_EMPTY + ";");
+        StackPane root = new StackPane();
+        root.setStyle("-fx-background-color: #0f172a;");
 
-        Canvas menuCanvas = new Canvas(GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
-        GraphicsContext gc = menuCanvas.getGraphicsContext2D();
+        Label titleLabel = new Label("TOWER DEFENSE 2D");
+        titleLabel.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 52px; -fx-font-weight: bold; -fx-text-fill: #38bdf8;");
 
-        gc.setFill(Color.web(Constants.COLOR_EMPTY));
-        gc.fillRect(0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
+        DropShadow glowEffect = new DropShadow();
+        glowEffect.setColor(Color.web("#0284c7"));
+        glowEffect.setRadius(20);
+        glowEffect.setSpread(0.4);
+        titleLabel.setEffect(glowEffect);
 
-        gc.setFill(Color.WHITE);
-<<<<<<< Updated upstream
-        gc.setFont(Font.font("Arial", 64));
-        gc.fillText("Tower Defense 2D", 300, 200);
+        int bestScore = loadHighScore();
+        Label highScoreLabel = new Label("🏆 BEST SCORE: " + bestScore);
+        highScoreLabel.setStyle(
+            "-fx-font-family: 'Arial'; -fx-font-size: 20px; -fx-font-weight: bold; "
+            + "-fx-text-fill: #f59e0b; -fx-background-color: #1e293b; "
+            + "-fx-padding: 8px 24px; -fx-background-radius: 20px; "
+            + "-fx-border-color: #f59e0b; -fx-border-radius: 20px; -fx-border-width: 1.5px;"
+        );
 
-        gc.setFont(Font.font("Arial", 24));
-=======
-        gc.setFont(javafx.scene.text.Font.font("Arial", 64));
-        gc.fillText(GameConfig.WINDOW_TITLE, 300, 200);
+        Button startBtn = createStyledButton("▶  START GAME", "#22c55e", "#16a34a");
+        startBtn.setOnAction(e -> switchToGameScene());
 
-        gc.setFont(javafx.scene.text.Font.font("Arial", Constants.HUD_FONT_SIZE + 8));
->>>>>>> Stashed changes
-        gc.fillText("Press SPACE to start game", 400, 400);
-        gc.fillText("Press ESC to exit", 450, 450);
+        Button quitBtn = createStyledButton("❌  QUIT GAME", "#ef4444", "#dc2626");
+        quitBtn.setOnAction(e -> System.exit(0));
 
-        root.setCenter(menuCanvas);
+        VBox menuBox = new VBox(20, titleLabel, highScoreLabel, startBtn, quitBtn);
+        menuBox.setAlignment(Pos.CENTER);
+
+        root.getChildren().add(menuBox);
 
         Scene scene = new Scene(root, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
-        
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
-<<<<<<< Updated upstream
-                case SPACE:
-                    switchToGameScene(); 
-                    break;
-                case ESCAPE:
-                    System.exit(0); 
-                    break;
-                default:
-                    break;
-=======
                 case SPACE -> switchToGameScene();
                 case ESCAPE -> System.exit(0);
                 default -> {}
->>>>>>> Stashed changes
             }
         });
 
-        menuCanvas.requestFocus();
         return scene;
     }
 
+    /**
+     * Hàm phụ trợ thiết kế nút với hiệu ứng hover.
+     */
+    private Button createStyledButton(String text, String normalColor, String hoverColor) {
+        Button btn = new Button(text);
+        btn.setPrefWidth(260);
+        btn.setPrefHeight(50);
+
+        String styleNormal = String.format(
+            "-fx-background-color: %s; -fx-text-fill: white; -fx-font-size: 18px; "
+            + "-fx-font-weight: bold; -fx-background-radius: 12px; -fx-cursor: hand;",
+            normalColor
+        );
+
+        String styleHover = String.format(
+            "-fx-background-color: %s; -fx-text-fill: white; -fx-font-size: 18px; "
+            + "-fx-font-weight: bold; -fx-background-radius: 12px; -fx-cursor: hand; "
+            + "-fx-scale-x: 1.05; -fx-scale-y: 1.05;",
+            hoverColor
+        );
+
+        btn.setStyle(styleNormal);
+        btn.setOnMouseEntered(e -> btn.setStyle(styleHover));
+        btn.setOnMouseExited(e -> btn.setStyle(styleNormal));
+
+        return btn;
+    }
+
+    /**
+     * Đọc High Score từ file lưu trữ local.
+     */
+    public static int loadHighScore() {
+        File file = new File(HIGH_SCORE_FILE);
+        if (!file.exists()) {
+            return 0;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line = reader.readLine();
+            return (line != null) ? Integer.parseInt(line.trim()) : 0;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Cập nhật High Score mới nếu kỷ lục bị phá.
+     */
+    public static void saveHighScore(int newScore) {
+        int currentBest = loadHighScore();
+        if (newScore > currentBest) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(HIGH_SCORE_FILE))) {
+                writer.write(String.valueOf(newScore));
+                System.out.println(">>> Kỷ lục mới đã được lưu: " + newScore);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Tạo màn chơi chính (GameScene).
+     */
     public Scene createGameScene() {
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + Constants.COLOR_BACKGROUND + ";");
@@ -93,7 +158,6 @@ public class SceneManager {
         root.setCenter(gameCanvas);
 
         Scene scene = new Scene(root, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
-
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
                 switchToMenuScene();
@@ -112,7 +176,7 @@ public class SceneManager {
     public void switchToMenuScene() {
         Scene menuScene = createMenuScene();
         primaryStage.setScene(menuScene);
-        this.currentGame = null; 
+        this.currentGame = null;
     }
 
     public void switchToGameScene() {

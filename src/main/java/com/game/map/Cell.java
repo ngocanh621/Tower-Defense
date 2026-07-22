@@ -1,7 +1,7 @@
 package com.game.map;
 
 /**
- * Represents a single cell in the game grid.
+ * Đại diện cho một ô đơn lẻ trên lưới bản đồ game (Grid Cell).
  */
 public class Cell {
 
@@ -15,7 +15,7 @@ public class Cell {
         this.type = type;
     }
 
-    // Getters and setters
+    // Getters và Setters
     public int getRow() {
         return row;
     }
@@ -33,7 +33,8 @@ public class Cell {
     }
 
     /**
-     * Check if towers can be placed on this cell.
+     * Kiểm tra xem tháp phòng thủ có thể đặt lên ô này được hay không.
+     * @return true nếu ô đang là đất trống (EMPTY)
      */
     public boolean canPlaceTower() {
         return type == CellType.EMPTY;

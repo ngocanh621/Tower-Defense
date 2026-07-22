@@ -1,7 +1,10 @@
 package com.game.model;
 
+import javafx.scene.canvas.GraphicsContext;
+
 /**
- * Base class for all game entities (towers, enemies, projectiles).
+ * Lớp cha trừu tượng (Abstract Base Class) đại diện cho mọi thực thể trong game 
+ * Tháp phòng thủ, Quái vật, Viên đạn.
  */
 public abstract class Entity {
 
@@ -20,25 +23,33 @@ public abstract class Entity {
     }
 
     /**
-     * Update entity logic for the current frame.
+     * Cập nhật logic thực thể theo nhịp thời gian thực.
+     * @param deltaTime Khoảng thời gian trôi qua giữa 2 khung hình (tính bằng giây)
      */
     public abstract void update(double deltaTime);
 
     /**
-     * Check if this entity is active.
+     * Vẽ đồ họa thực thể lên Canvas.
+     * @param gc Đối tượng đồ họa GraphicsContext của JavaFX
+     */
+    public abstract void render(GraphicsContext gc);
+
+    /**
+     * Kiểm tra thực thể có đang active trên màn hình hay không.
      */
     public boolean isActive() {
         return active;
     }
 
     /**
-     * Set the active state of this entity.
+     * Thiết lập cờ hoạt động.
      */
     public void setActive(boolean active) {
         this.active = active;
     }
 
-    // Getters and setters
+    // --- GETTERS & SETTERS ---
+
     public float getX() {
         return x;
     }
@@ -72,7 +83,8 @@ public abstract class Entity {
     }
 
     /**
-     * Get distance to another entity.
+     * Tính khoảng cách Euclid từ tâm thực thể này đến thực thể khác.
+     * Thường dùng để tính tầm bắn của Tháp.
      */
     public float distanceTo(Entity other) {
         float dx = this.x - other.x;
@@ -81,7 +93,8 @@ public abstract class Entity {
     }
 
     /**
-     * Check if this entity overlaps with another.
+     * Kiểm tra va chạm hình hộp (AABB Collision Detection) giữa 2 thực thể.
+     * Thường dùng để kiểm tra Đạn trúng Quái.
      */
     public boolean overlaps(Entity other) {
         return this.x < other.x + other.width &&

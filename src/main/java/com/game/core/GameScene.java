@@ -1,95 +1,108 @@
-
 package com.game.core;
 
+import com.game.map.Cell;
+import com.game.map.CellType;
+import com.game.map.MapModel;
 import com.game.util.Constants;
 import com.game.util.GameConfig;
+import java.io.InputStream;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 
-/**
- * Màn chơi chính
- * Dùng để cập nhật game và vẽ game
- */
 public class GameScene {
 
     private final Canvas canvas;
     private final GraphicsContext gc;
+    private final MapModel mapModel;
+    private Image mapImage;
 
     public GameScene(Canvas canvas, GraphicsContext gc) {
         this.canvas = canvas;
         this.gc = gc;
+        this.mapModel = new MapModel();
+        this.mapImage = loadMapImage();
     }
 
-    /**
-<<<<<<< Updated upstream
-     * 
-=======
-     *.
->>>>>>> Stashed changes
-     * @param deltaTime 
-     */
+    private Image loadMapImage() {
+        String[] candidates = {"/assets/map.jpg", "/assets/map.png", "/assets/map.jpeg"};
+
+        for (String path : candidates) {
+            try (InputStream is = getClass().getResourceAsStream(path)) {
+                if (is != null) {
+                    Image image = new Image(is);
+                    if (!image.isError()) {
+                        System.out.println(">>> Load ảnh " + path + " thành công!");
+                        return image;
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("❌ Lỗi khi load ảnh " + path + ": " + e.getMessage());
+            }
+        }
+
+        System.out.println("⚠️ Không tìm thấy ảnh map trong resources/assets, dùng màu nền mặc định.");
+        return null;
+    }
+
     public void update(double deltaTime) {
+        // Logic cập nhật đạn, quái, tháp...
     }
 
-<<<<<<< Updated upstream
-   
-=======
->>>>>>> Stashed changes
     public void render() {
-        gc.setFill(Color.web(Constants.COLOR_BACKGROUND));
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        if (mapImage != null && !mapImage.isError()) {
+            gc.drawImage(mapImage, 0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
+        } else {
+            gc.setFill(Color.web(Constants.COLOR_BACKGROUND));
+            gc.fillRect(0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
+            drawMapFallback();
+        }
 
-        if (Constants.DEBUG_GRID) {
-            drawPlaceholderGrid();
+        drawGridOverlay();
+    }
+
+    private void drawGridOverlay() {
+        double cellSize = GameConfig.GRID_CELL_SIZE;
+        gc.setStroke(Color.rgb(255, 255, 255, 0.15));
+        gc.setLineWidth(0.5);
+
+        for (int r = 0; r < mapModel.getRows(); r++) {
+            for (int c = 0; c < mapModel.getCols(); c++) {
+                gc.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
+            }
         }
     }
 
-   
+    private void drawMapFallback() {
+        Cell[][] grid = mapModel.getGrid();
+        double cellSize = GameConfig.GRID_CELL_SIZE;
+
+        for (int r = 0; r < mapModel.getRows(); r++) {
+            for (int c = 0; c < mapModel.getCols(); c++) {
+                Cell cell = grid[r][c];
+                if (cell.getType() == CellType.PATH) {
+                    gc.setFill(Color.web(Constants.COLOR_PATH));
+                    gc.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
+                }
+            }
+        }
+    }
+
     public void handleKeyPress(KeyEvent event) {
     }
 
-
     public void handleMouseClick(MouseEvent event) {
+        double mouseX = event.getX();
+        double mouseY = event.getY();
+        int col = (int) (mouseX / GameConfig.GRID_CELL_SIZE);
+        int row = (int) (mouseY / GameConfig.GRID_CELL_SIZE);
+
+        System.out.println(">>> Click ô Row: " + row + ", Col: " + col);
     }
 
     public void handleMouseMove(MouseEvent event) {
-    }
-
-    private void drawPlaceholderGrid() {
-        int cellSize = GameConfig.GRID_CELL_SIZE;
-        int rows = GameConfig.GRID_HEIGHT;
-        int cols = GameConfig.GRID_WIDTH;
-
-        gc.setStroke(Color.web(Constants.COLOR_GRID));
-        gc.setLineWidth(1);
-
-        // Vẽ đường kẻ dọc
-        for (int i = 0; i <= cols; i++) {
-            gc.strokeLine(i * cellSize, 0, i * cellSize, canvas.getHeight());
-        }
-        // Vẽ đường kẻ ngang
-        for (int i = 0; i <= rows; i++) {
-            gc.strokeLine(0, i * cellSize, canvas.getWidth(), i * cellSize);
-        }
-
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 24));
-<<<<<<< Updated upstream
-        gc.fillText("Game Scene (Testing Mode)", 50, 50);
-        
-        gc.setFont(Font.font("Arial", Constants.HUD_FONT_SIZE));
-        gc.fillText("Grid Map: " + cols + "x" + rows + " cells (" + cellSize + "x" + cellSize + "px)", 50, 80);
-        gc.fillText("Press ESC to return to Main Menu", 50, 110);
-=======
-        gc.fillText("Game Scene (Chế độ Thử nghiệm)", 50, 50);
-        
-        gc.setFont(Font.font("Arial", Constants.HUD_FONT_SIZE));
-        gc.fillText("Bản đồ lưới: " + cols + "x" + rows + " ô vuông (" + cellSize + "x" + cellSize + "px)", 50, 80);
-        gc.fillText("Nhấn ESC để quay lại Menu chính", 50, 110);
->>>>>>> Stashed changes
     }
 }
