@@ -37,7 +37,6 @@ public class GameApplication extends Application {
         });
 
         primaryStage.show();
-        System.out.println(">>> Tower Defense 2D đã khởi động thành công!");
     }
 
     public static void main(String[] args) {

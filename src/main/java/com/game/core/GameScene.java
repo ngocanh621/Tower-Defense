@@ -3,9 +3,14 @@ package com.game.core;
 import com.game.map.Cell;
 import com.game.map.CellType;
 import com.game.map.MapModel;
+import com.game.model.Enemy;
+import com.game.model.Enemy.EnemyType;
 import com.game.util.Constants;
 import com.game.util.GameConfig;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
@@ -18,6 +23,7 @@ public class GameScene {
     private final Canvas canvas;
     private final GraphicsContext gc;
     private final MapModel mapModel;
+    private final List<Enemy> enemies = new ArrayList<>();
     private Image mapImage;
 
     public GameScene(Canvas canvas, GraphicsContext gc) {
@@ -25,6 +31,7 @@ public class GameScene {
         this.gc = gc;
         this.mapModel = new MapModel();
         this.mapImage = loadMapImage();
+        initializeEnemies();
     }
 
     private Image loadMapImage() {
@@ -35,21 +42,25 @@ public class GameScene {
                 if (is != null) {
                     Image image = new Image(is);
                     if (!image.isError()) {
-                        System.out.println(">>> Load ảnh " + path + " thành công!");
                         return image;
                     }
                 }
             } catch (Exception e) {
-                System.err.println("❌ Lỗi khi load ảnh " + path + ": " + e.getMessage());
             }
         }
 
-        System.out.println("⚠️ Không tìm thấy ảnh map trong resources/assets, dùng màu nền mặc định.");
         return null;
     }
 
     public void update(double deltaTime) {
-        // Logic cập nhật đạn, quái, tháp...
+        Iterator<Enemy> iterator = enemies.iterator();
+        while (iterator.hasNext()) {
+            Enemy enemy = iterator.next();
+            enemy.update(deltaTime);
+            if (!enemy.isActive()) {
+                iterator.remove();
+            }
+        }
     }
 
     public void render() {
@@ -61,7 +72,14 @@ public class GameScene {
             drawMapFallback();
         }
 
+        renderEnemies();
         drawGridOverlay();
+    }
+
+    private void renderEnemies() {
+        for (Enemy enemy : enemies) {
+            enemy.render(gc);
+        }
     }
 
     private void drawGridOverlay() {
@@ -104,5 +122,22 @@ public class GameScene {
     }
 
     public void handleMouseMove(MouseEvent event) {
+    }
+
+    private void initializeEnemies() {
+        Enemy goblin = new Enemy();
+        goblin.initialize(EnemyType.GOBLIN, mapModel);
+        goblin.setY(goblin.getY() - 10f);
+        enemies.add(goblin);
+
+        Enemy orc = new Enemy();
+        orc.initialize(EnemyType.ORC, mapModel);
+        orc.setY(orc.getY() + 10f);
+        enemies.add(orc);
+
+        Enemy dragon = new Enemy();
+        dragon.initialize(EnemyType.DRAGON, mapModel);
+        dragon.setY(dragon.getY() + 20f);
+        enemies.add(dragon);
     }
 }
