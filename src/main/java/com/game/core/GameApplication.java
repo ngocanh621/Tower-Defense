@@ -5,6 +5,10 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+/**
+ * Cổng khởi động chính.
+ * Khởi tạo giao diện JavaFX, bộ quản lý SceneManager và GameLoop.
+ */
 public class GameApplication extends Application {
 
     private SceneManager sceneManager;
@@ -15,7 +19,6 @@ public class GameApplication extends Application {
         primaryStage.setTitle(GameConfig.WINDOW_TITLE);
         primaryStage.setWidth(GameConfig.WINDOW_WIDTH);
         primaryStage.setHeight(GameConfig.WINDOW_HEIGHT);
-        
         primaryStage.setResizable(false);
 
         sceneManager = new SceneManager(primaryStage);
@@ -27,13 +30,13 @@ public class GameApplication extends Application {
         gameLoop.start();
 
         primaryStage.setOnCloseRequest(e -> {
-            gameLoop.stop(); 
-            System.exit(0);  
+            if (gameLoop != null) {
+                gameLoop.stop();
+            }
+            System.exit(0);
         });
 
         primaryStage.show();
-
-        System.out.println(GameConfig.WINDOW_TITLE + " has been started successfully!");
     }
 
     public static void main(String[] args) {

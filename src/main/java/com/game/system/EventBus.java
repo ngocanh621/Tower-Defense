@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * Singleton Event Bus for inter-system communication.
- * Allows loose coupling between game systems.
+ * Trạm phát/nhận tin nhắn trung tâm (Event Bus / Observer Pattern) áp dụng Singleton.
+ * Giúp giao tiếp giữa các hệ thống trong game mà không bị phụ thuộc chặt chẽ (Loose Coupling).
  */
 public class EventBus {
 
@@ -13,31 +13,28 @@ public class EventBus {
     private final Map<GameEvent, List<Consumer<Object>>> listeners = new EnumMap<>(GameEvent.class);
 
     private EventBus() {
-        // Private constructor for singleton
+        // Khóa constructor để ngăn việc tạo thêm thể hiện (Singleton)
     }
 
     /**
-     * Get the singleton instance.
+     * Lấy thể hiện duy nhất của EventBus.
      */
     public static EventBus getInstance() {
         return INSTANCE;
     }
 
     /**
-     * Subscribe to a game event.
+     * Đăng ký nhận thông báo (Subscribe) khi một sự kiện xảy ra.
      *
-     * @param event    The event to subscribe to
-     * @param listener The listener callback
+     * @param event    Loại sự kiện muốn lắng nghe
+     * @param listener Hàm xử lý (Callback) khi nhận tin
      */
     public void subscribe(GameEvent event, Consumer<Object> listener) {
         listeners.computeIfAbsent(event, k -> new ArrayList<>()).add(listener);
     }
 
     /**
-     * Unsubscribe from a game event.
-     *
-     * @param event    The event to unsubscribe from
-     * @param listener The listener to remove
+     * Hủy đăng ký lắng nghe một sự kiện.
      */
     public void unsubscribe(GameEvent event, Consumer<Object> listener) {
         List<Consumer<Object>> subs = listeners.get(event);
@@ -47,10 +44,10 @@ public class EventBus {
     }
 
     /**
-     * Publish an event to all subscribers.
+     * Bắn đi một sự kiện (Publish) để tất cả các bên đăng ký cùng nhận dữ liệu.
      *
-     * @param event The event to publish
-     * @param data  The event data (can be null)
+     * @param event Loại sự kiện phát ra
+     * @param data  Dữ liệu kèm theo sự kiện (có thể là null)
      */
     public void publish(GameEvent event, Object data) {
         List<Consumer<Object>> subs = listeners.getOrDefault(event, Collections.emptyList());
@@ -65,25 +62,21 @@ public class EventBus {
     }
 
     /**
-     * Publish an event without data.
-     *
-     * @param event The event to publish
+     * Phát một sự kiện không mang theo dữ liệu.
      */
     public void publish(GameEvent event) {
         publish(event, null);
     }
 
     /**
-     * Clear all listeners (useful for testing or cleanup).
+     * Xóa toàn bộ listener (dùng khi reset game hoặc test).
      */
     public void clear() {
         listeners.clear();
     }
 
     /**
-     * Clear listeners for a specific event.
-     *
-     * @param event The event to clear listeners for
+     * Xóa các listener của một sự kiện cụ thể.
      */
     public void clear(GameEvent event) {
         listeners.remove(event);

@@ -4,8 +4,8 @@ import com.game.util.GameConfig;
 import javafx.animation.AnimationTimer;
 
 /**
- * Vòng lặp game chính - Main Game Loop
- * Quản lý chu kỳ update và render
+ * Vòng lặp game chính.
+ * Quản lý chu kỳ update và render.
  */
 public class GameLoop {
 
@@ -46,7 +46,7 @@ public class GameLoop {
     /**
      * Cập nhật logic game cho khung hình hiện tại.
      *
-     * @param deltaTime Thời gian trôi qua kể từ khung hình trước 
+     * @param deltaTime Khoảng thời gian trôi qua giữa 2 khung hình.
      */
     private void update(double deltaTime) {
         if (sceneManager.getCurrentGame() != null) {
@@ -59,18 +59,18 @@ public class GameLoop {
             sceneManager.getCurrentGame().render();
         }
     }
-  
+
     public void start() {
         if (animationTimer != null) {
             animationTimer.start();
-            System.out.println("GameLoop started at TARGET FPS: " + GameConfig.TARGET_FPS);
+            System.out.println(">>> GameLoop đã kích hoạt!");
         }
     }
 
     public void stop() {
         if (animationTimer != null) {
             animationTimer.stop();
-            System.out.println("GameLoop stopped");
+            System.out.println(">>> GameLoop đã tạm dừng!");
         }
     }
 }
