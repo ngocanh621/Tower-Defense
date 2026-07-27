@@ -11,6 +11,7 @@ public class PlayerState {
 
     private int health;
     private int gold;
+    private int score;
     private final int maxHealth;
 
     /**
@@ -27,6 +28,7 @@ public class PlayerState {
         this.health = initialHealth;
         this.maxHealth = initialHealth;
         this.gold = initialGold;
+        this.score = 0;
     }
 
     /**
@@ -70,7 +72,23 @@ public class PlayerState {
         return false;
     }
 
+    /**
+     * Cộng thêm điểm số cho người chơi.
+     * @param points Số điểm thưởng
+     */
+    public void addScore(int points) {
+        this.score += points;
+    }
+
     // --- GETTERS & SETTERS ---
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
 
     public int getHealth() {
         return health;

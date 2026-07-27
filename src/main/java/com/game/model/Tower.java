@@ -110,6 +110,21 @@ public class Tower extends Entity {
     }
 
     /**
+     * Bắn đạn hướng tới quái vật trong tầm bắn
+     */
+    public Projectile fire(Enemy target) {
+        if (!canFire() || target == null || !isEnemyInRange(target)) {
+            return null;
+        }
+        resetCooldown();
+        float startX = x + width / 2f - 5f;
+        float startY = y + height / 2f - 5f;
+        Projectile projectile = new Projectile();
+        projectile.initialize(startX, startY, target, GameConfig.PROJECTILE_DAMAGE, GameConfig.PROJECTILE_SPEED);
+        return projectile;
+    }
+
+    /**
      * Kiểm tra xem con quái (Enemy) có nằm trong tầm bắn của tháp hay không
      */
     public boolean isEnemyInRange(Enemy enemy) {

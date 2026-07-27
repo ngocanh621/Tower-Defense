@@ -7,6 +7,9 @@ import com.game.system.EventBus;
 import com.game.system.GameEvent;
 import com.game.util.GameConfig;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
@@ -23,10 +26,11 @@ public class Enemy extends Entity implements Poolable {
     private float maxHp;           // Lượng máu tối đa
     private float speed;           // Tốc độ di chuyển (pixel/giây)
     private int reward;            // Số tiền vàng thưởng cho người chơi khi hạ gục
-    private float targetX;        // Tọa độ X của điểm đích (BASE)
-    private float targetY;        // Tọa độ Y của điểm đích (BASE)
     private boolean reachedBase;   // Cờ đánh dấu quái đã chạm nhà chính hay chưa
     private Image sprite;          // Hình ảnh quái, nếu có
+
+    private final List<Point2D> waypoints = new ArrayList<>(); // Danh sách các điểm mốc trên đường đi
+    private int currentWaypointIndex = 0;                      // Chỉ số điểm mốc mục tiêu hiện tại
 
     /**
      * Constructor mặc định khóa trạng thái active = false.
@@ -51,25 +55,26 @@ public class Enemy extends Entity implements Poolable {
         this.reachedBase = false;
         this.sprite = loadSprite(type);
 
-        // Tìm ô sinh quái (SPAWN) và ô đích (BASE) trên bản đồ lưới
-        Cell spawnCell = findCell(mapModel, CellType.SPAWN);
-        Cell baseCell = findCell(mapModel, CellType.BASE);
-        if (spawnCell == null || baseCell == null) {
-            throw new IllegalArgumentException("MapModel phải có cả ô SPAWN và BASE.");
-        }
-
-        // Tính toán kích thước quái (nhỏ hơn ô cờ một chút để căn giữa đẹp mắt)
+        // Tính toán kích thước quái
         float size = GameConfig.GRID_CELL_SIZE * 0.8f;
         this.width = size;
         this.height = size;
 
-        // Đặt vị trí xuất hiện tại chính giữa ô SPAWN
-        this.x = spawnCell.getCol() * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - size) / 2f;
-        this.y = spawnCell.getRow() * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - size) / 2f;
+        // Lấy danh sách các điểm mốc đường đi (Waypoints) từ MapModel
+        waypoints.clear();
+        if (mapModel != null && mapModel.getPathWaypoints() != null) {
+            waypoints.addAll(mapModel.getPathWaypoints());
+        }
 
-        // Đặt tọa độ đích đến là chính giữa ô BASE
-        this.targetX = baseCell.getCol() * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - size) / 2f;
-        this.targetY = baseCell.getRow() * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - size) / 2f;
+        this.currentWaypointIndex = 0;
+
+        // Đặt vị trí xuất phát ban đầu tại điểm mốc đầu tiên (SPAWN)
+        if (!waypoints.isEmpty()) {
+            Point2D startWp = waypoints.get(0);
+            this.x = (float) startWp.getX() - size / 2f;
+            this.y = (float) startWp.getY() - size / 2f;
+            this.currentWaypointIndex = 1; // Hướng tới điểm mốc thứ 2
+        }
 
         this.active = true; // Bật cờ cho phép quái hoạt động và vẽ lên màn hình
     }
@@ -84,13 +89,37 @@ public class Enemy extends Entity implements Poolable {
             return; // Nếu quái chưa được kích hoạt hoặc đã chạm đích thì bỏ qua
         }
 
-        // Tự động tịnh tiến vị trí X theo tốc độ độc lập phần cứng (speed * deltaTime)
-        x += speed * deltaTime;
+        if (waypoints.isEmpty() || currentWaypointIndex >= waypoints.size()) {
+            reachBase();
+            return;
+        }
 
-        // Nếu quái đi tới hoặc vượt qua điểm đích (BASE)
-        if (x >= targetX) {
-            x = targetX;
-            reachBase(); // Kích hoạt sự kiện quái chạm nhà chính
+        // Tọa độ tâm quái hiện tại
+        float centerX = x + width / 2f;
+        float centerY = y + height / 2f;
+
+        // Tọa độ điểm mốc mục tiêu
+        Point2D targetWp = waypoints.get(currentWaypointIndex);
+        float targetX = (float) targetWp.getX();
+        float targetY = (float) targetWp.getY();
+
+        float dx = targetX - centerX;
+        float dy = targetY - centerY;
+        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        float stepDistance = (float) (speed * deltaTime);
+
+        // Nếu quái chạm hoặc đi qua điểm mốc hiện tại
+        if (distance <= stepDistance) {
+            this.x = targetX - width / 2f;
+            this.y = targetY - height / 2f;
+            currentWaypointIndex++;
+            if (currentWaypointIndex >= waypoints.size()) {
+                reachBase(); // Chạm điểm mốc cuối cùng (BASE)
+            }
+        } else {
+            // Tịnh tiến vị trí quái theo hướng điểm mốc hiện tại
+            this.x += (dx / distance) * stepDistance;
+            this.y += (dy / distance) * stepDistance;
         }
     }
 
@@ -194,8 +223,6 @@ public class Enemy extends Entity implements Poolable {
         this.maxHp = 0;
         this.speed = 0;
         this.reward = 0;
-        this.targetX = 0;
-        this.targetY = 0;
         this.reachedBase = false;
         this.sprite = null;
         this.active = false;
@@ -203,6 +230,8 @@ public class Enemy extends Entity implements Poolable {
         this.y = 0;
         this.width = 0;
         this.height = 0;
+        this.waypoints.clear();
+        this.currentWaypointIndex = 0;
     }
 
     private Image loadSprite(EnemyType type) {
