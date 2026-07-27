@@ -6,8 +6,8 @@ import java.util.List;
 import javafx.geometry.Point2D;
 
 /**
- * Mô hình quản lý bản đồ trò chơi.
- * Xây dựng danh sách đường đi ô cờ (PATH) uốn lượn và danh sách điểm mốc (Waypoints).
+ * Mô hình bản đồ game khớp chuẩn 100% với con đường vàng trên hình ảnh map.png.
+ * Quản lý danh sách ô cờ (grid) và tọa độ các điểm mốc (Waypoints).
  */
 public class MapModel {
 
@@ -24,65 +24,93 @@ public class MapModel {
     }
 
     /**
-     * Khởi tạo lưới ô cờ và đường đi uốn lượn (Waypoints).
+     * Khởi tạo bản đồ khớp vệt đường vàng trên ảnh map.png (1280x720).
      */
     private void initializeGrid() {
+        // 1. Khởi tạo toàn bộ các ô ban đầu là EMPTY (đất trống/cỏ xanh)
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 grid[r][c] = new Cell(r, c, CellType.EMPTY);
             }
         }
 
-        // Danh sách các điểm mốc uốn lượn (Hàng, Cột)
-        int[][] waypointsGrid = {
-            {4, 0},   // SPAWN
-            {4, 8},   // Khúc rẽ 1
-            {13, 8},  // Khúc rẽ 2
-            {13, 18}, // Khúc rẽ 3
-            {5, 18},  // Khúc rẽ 4
-            {5, 26},  // Khúc rẽ 5
-            {11, 26}, // Khúc rẽ 6
-            {11, cols - 1} // BASE
+        // 2. Danh sách mốc tọa độ chính xác của con đường đất vàng trên map.png
+        double[][] rawControlPoints = {
+            {0, 300},      // Cổng xuất phát bên trái
+            {120, 300},
+            {260, 390},    // Khúc uốn cua xuống
+            {420, 370},
+            {560, 260},
+            {630, 190},    // Đỉnh cua phía trên
+            {730, 220},
+            {770, 360},    // Vòng cua xuống phải
+            {680, 520},
+            {450, 530},    // Vòng lặp giữa kéo về trái
+            {220, 540},
+            {150, 620},    // Góc dưới bên trái
+            {240, 665},
+            {480, 665},    // Đoạn đáy dưới cùng
+            {720, 665},
+            {840, 630},
+            {730, 500},    // Cua ngoặt dốc
+            {800, 450},
+            {980, 450},    // Đoạn ngang bên phải
+            {1150, 410},
+            {1180, 310},   // Vòng lượn quanh đầm lầy
+            {1080, 230},
+            {960, 230},
+            {990, 150},    // Lối vào lều xanh
+            {1080, 150}    // Đích căn cứ Lều Xanh (BASE)
         };
 
+        // 3. Nội suy mượt mà giữa các điểm mốc (Subdivide/Interpolate)
         pathWaypoints.clear();
+        for (int i = 0; i < rawControlPoints.length - 1; i++) {
+            double p1x = rawControlPoints[i][0];
+            double p1y = rawControlPoints[i][1];
+            double p2x = rawControlPoints[i + 1][0];
+            double p2y = rawControlPoints[i + 1][1];
+
+            double dist = Math.hypot(p2x - p1x, p2y - p1y);
+            int steps = Math.max(1, (int) (dist / 15.0)); // Mỗi nấc cách nhau khoảng 15px để quái đi cực mượt
+
+            for (int s = 0; s < steps; s++) {
+                double t = (double) s / steps;
+                double ix = p1x + t * (p2x - p1x);
+                double iy = p1y + t * (p2y - p1y);
+                pathWaypoints.add(new Point2D(ix, iy));
+            }
+        }
+        // Thêm điểm mốc cuối cùng
+        double[] last = rawControlPoints[rawControlPoints.length - 1];
+        pathWaypoints.add(new Point2D(last[0], last[1]));
+
+        // 4. Đánh dấu các ô nằm trên vệt đường vàng thành CellType.PATH
         double cellSize = GameConfig.GRID_CELL_SIZE;
+        for (Point2D wp : pathWaypoints) {
+            int col = (int) (wp.getX() / cellSize);
+            int row = (int) (wp.getY() / cellSize);
 
-        // Nối các điểm mốc và đánh dấu loại ô PATH trên lưới
-        for (int i = 0; i < waypointsGrid.length - 1; i++) {
-            int startRow = waypointsGrid[i][0];
-            int startCol = waypointsGrid[i][1];
-            int endRow = waypointsGrid[i + 1][0];
-            int endCol = waypointsGrid[i + 1][1];
-
-            int r = startRow;
-            int c = startCol;
-
-            int dr = Integer.compare(endRow, startRow);
-            int dc = Integer.compare(endCol, startCol);
-
-            while (true) {
-                grid[r][c].setType(CellType.PATH);
-                if (r == endRow && c == endCol) {
-                    break;
-                }
-                r += dr;
-                c += dc;
+            if (row >= 0 && row < rows && col >= 0 && col < cols) {
+                grid[row][col].setType(CellType.PATH);
             }
         }
 
-        // Đặt ô xuất phát (SPAWN) và nhà chính (BASE)
-        int[] spawn = waypointsGrid[0];
-        int[] base = waypointsGrid[waypointsGrid.length - 1];
+        // 5. Đánh dấu ô SPAWN và BASE
+        Point2D spawnWp = pathWaypoints.get(0);
+        Point2D baseWp = pathWaypoints.get(pathWaypoints.size() - 1);
 
-        grid[spawn[0]][spawn[1]].setType(CellType.SPAWN);
-        grid[base[0]][base[1]].setType(CellType.BASE);
+        int spawnCol = (int) (spawnWp.getX() / cellSize);
+        int spawnRow = (int) (spawnWp.getY() / cellSize);
+        int baseCol = (int) (baseWp.getX() / cellSize);
+        int baseRow = (int) (baseWp.getY() / cellSize);
 
-        // Chuyển đổi danh sách điểm mốc sang tọa độ Pixel (tâm ô vuông)
-        for (int[] wp : waypointsGrid) {
-            double px = wp[1] * cellSize + cellSize / 2.0;
-            double py = wp[0] * cellSize + cellSize / 2.0;
-            pathWaypoints.add(new Point2D(px, py));
+        if (spawnRow >= 0 && spawnRow < rows && spawnCol >= 0 && spawnCol < cols) {
+            grid[spawnRow][spawnCol].setType(CellType.SPAWN);
+        }
+
+        if (baseRow >= 0 && baseRow < rows && baseCol >= 0 && baseCol < cols) {
+            grid[baseRow][baseCol].setType(CellType.BASE);
         }
     }
 

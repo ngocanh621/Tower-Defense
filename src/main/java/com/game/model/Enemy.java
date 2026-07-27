@@ -94,32 +94,38 @@ public class Enemy extends Entity implements Poolable {
             return;
         }
 
-        // Tọa độ tâm quái hiện tại
-        float centerX = x + width / 2f;
-        float centerY = y + height / 2f;
+        // Bước di chuyển trong khung hình hiện tại
+        float remainingStep = (float) (speed * deltaTime);
 
-        // Tọa độ điểm mốc mục tiêu
-        Point2D targetWp = waypoints.get(currentWaypointIndex);
-        float targetX = (float) targetWp.getX();
-        float targetY = (float) targetWp.getY();
+        // Vòng lặp tịnh tiến mượt qua nhiều điểm mốc nếu tốc độ cao
+        while (remainingStep > 0 && currentWaypointIndex < waypoints.size()) {
+            float centerX = x + width / 2f;
+            float centerY = y + height / 2f;
 
-        float dx = targetX - centerX;
-        float dy = targetY - centerY;
-        float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        float stepDistance = (float) (speed * deltaTime);
+            Point2D targetWp = waypoints.get(currentWaypointIndex);
+            float targetX = (float) targetWp.getX();
+            float targetY = (float) targetWp.getY();
 
-        // Nếu quái chạm hoặc đi qua điểm mốc hiện tại
-        if (distance <= stepDistance) {
-            this.x = targetX - width / 2f;
-            this.y = targetY - height / 2f;
-            currentWaypointIndex++;
-            if (currentWaypointIndex >= waypoints.size()) {
-                reachBase(); // Chạm điểm mốc cuối cùng (BASE)
+            float dx = targetX - centerX;
+            float dy = targetY - centerY;
+            float distance = (float) Math.sqrt(dx * dx + dy * dy);
+
+            if (distance <= remainingStep) {
+                // Đã chạm hoặc vượt mốc, cập nhật tọa độ chính xác mốc này và chuyển sang mốc kế tiếp
+                this.x = targetX - width / 2f;
+                this.y = targetY - height / 2f;
+                remainingStep -= distance;
+                currentWaypointIndex++;
+                if (currentWaypointIndex >= waypoints.size()) {
+                    reachBase(); // Đã chạm căn cứ lều xanh
+                    return;
+                }
+            } else {
+                // Tịnh tiến vị trí quái theo hướng mốc hiện tại
+                this.x += (dx / distance) * remainingStep;
+                this.y += (dy / distance) * remainingStep;
+                remainingStep = 0;
             }
-        } else {
-            // Tịnh tiến vị trí quái theo hướng điểm mốc hiện tại
-            this.x += (dx / distance) * stepDistance;
-            this.y += (dy / distance) * stepDistance;
         }
     }
 
