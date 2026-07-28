@@ -39,7 +39,17 @@ public class SceneManager {
      */
     public Scene createMenuScene() {
         StackPane root = new StackPane();
-        root.setStyle("-fx-background-color: #0f172a;");
+        String bgPath = getClass().getResource("/assets/MainScreen.png") != null
+                ? getClass().getResource("/assets/MainScreen.png").toExternalForm()
+                : "";
+
+        if (!bgPath.isEmpty()) {
+            root.setStyle("-fx-background-image: url('" + bgPath + "'); "
+                    + "-fx-background-size: cover; "
+                    + "-fx-background-position: center center;");
+        } else {
+            root.setStyle("-fx-background-color: #0f172a;");
+        }
 
         Label titleLabel = new Label("TOWER DEFENSE 2D");
         titleLabel.setStyle("-fx-font-family: 'Arial'; -fx-font-size: 52px; -fx-font-weight: bold; -fx-text-fill: #38bdf8;");
