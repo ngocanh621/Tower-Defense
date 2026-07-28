@@ -44,6 +44,10 @@ public class GameScene {
 
     private Image mapImage;
 
+    // Thêm hiệu ứng hover để hiện vị trí đặt được tháp
+    private int hoverCol = -1; // -1 nghĩa là chuột đang ở ngoài Canvas
+    private int hoverRow = -1;
+
     public GameScene(Canvas canvas, GraphicsContext gc) {
         this.canvas = canvas;
         this.gc = gc;
@@ -145,6 +149,44 @@ public class GameScene {
         }
     }
 
+    /**
+     * Vẽ hiệu ứng tô sáng (Highlight) ô cờ đang được con trỏ chuột hover.
+     */
+    private void renderTileHover() {
+        // Kiểm tra vị trí ô hợp lệ trong phạm vi ma trận bản đồ
+        if (hoverRow < 0 || hoverRow >= mapModel.getRows() ||
+                hoverCol < 0 || hoverCol >= mapModel.getCols()) {
+            return;
+        }
+
+        double cellSize = GameConfig.GRID_CELL_SIZE;
+        double x = hoverCol * cellSize;
+        double y = hoverRow * cellSize;
+
+        Cell cell = mapModel.getCell(hoverRow, hoverCol);
+
+        // Nút bấm kiểm tra xem ô này có cho phép đặt tháp hay không
+        boolean canPlace = (cell != null && cell.canPlaceTower());
+
+        if (canPlace) {
+            // ĐẶT ĐƯỢC: Tô màu xanh lá trong suốt + viền xanh sáng
+            gc.setFill(Color.rgb(0, 255, 0, 0.25));
+            gc.fillRect(x, y, cellSize, cellSize);
+
+            gc.setStroke(Color.LIME);
+            gc.setLineWidth(2);
+            gc.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+        } else {
+            // KHÔNG ĐẶT ĐƯỢC: Tô màu đỏ trong suốt + viền đỏ
+            gc.setFill(Color.rgb(255, 0, 0, 0.25));
+            gc.fillRect(x, y, cellSize, cellSize);
+
+            gc.setStroke(Color.RED);
+            gc.setLineWidth(2);
+            gc.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
+        }
+    }
+
     public void render() {
         // Step 1: Vẽ ảnh nền Map (hoặc fallback màu sắc)
         if (mapImage != null && !mapImage.isError()) {
@@ -166,6 +208,9 @@ public class GameScene {
 
         // Step 5: Vẽ lưới ô cờ (Overlay)
         drawGridOverlay();
+
+        // Step 5': Hiển thị hiệu ứng hover tại vị trí chuột
+        renderTileHover();
 
         // Step 6: Hiển thị giao diện HUD (Máu, Vàng, Wave)
         hudRenderer.render(gc, playerState, waveManager);
@@ -253,7 +298,16 @@ public class GameScene {
         }
     }
 
+    /**
+     * Cập nhật vị trí con trỏ chuột khi di chuyển trên Canvas
+     */
     public void handleMouseMove(MouseEvent event) {
+            double mouseX = event.getX();
+            double mouseY = event.getY();
+
+            // Tự động tính toán ra ô Col và Row tương ứng
+            this.hoverCol = (int) (mouseX / GameConfig.GRID_CELL_SIZE);
+            this.hoverRow = (int) (mouseY / GameConfig.GRID_CELL_SIZE);
     }
 
     public WaveManager getWaveManager() {
