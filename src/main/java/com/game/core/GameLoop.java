@@ -63,14 +63,12 @@ public class GameLoop {
     public void start() {
         if (animationTimer != null) {
             animationTimer.start();
-            System.out.println(">>> GameLoop đã kích hoạt!");
         }
     }
 
     public void stop() {
         if (animationTimer != null) {
             animationTimer.stop();
-            System.out.println(">>> GameLoop đã tạm dừng!");
         }
     }
 }
