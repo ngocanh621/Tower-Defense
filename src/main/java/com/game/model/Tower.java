@@ -52,10 +52,10 @@ public class Tower extends Entity {
     public Tower(int gridCol, int gridRow, TowerType type) {
         // Tính toán tọa độ pixel thực tế ở giữa ô lưới
         super(
-            gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 0.8f) / 2f,
-            gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 0.8f) / 2f,
-            GameConfig.GRID_CELL_SIZE * 2.0f,
-            GameConfig.GRID_CELL_SIZE * 2.0f
+            gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 3.0f) / 2f,
+            gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 3.0f) / 2f,
+                GameConfig.GRID_CELL_SIZE * 3.0f,
+                GameConfig.GRID_CELL_SIZE * 3.0f
         );
         this.type = type;
         this.range = type.getRange();
