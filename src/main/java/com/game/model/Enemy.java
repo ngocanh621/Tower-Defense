@@ -6,6 +6,7 @@ import com.game.map.MapModel;
 import com.game.system.EventBus;
 import com.game.system.GameEvent;
 import com.game.util.GameConfig;
+import com.game.util.Animation;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+
 
 /**
  * Đại diện cho 1 enemy.
@@ -27,7 +29,7 @@ public class Enemy extends Entity implements Poolable {
     private float speed;           // Tốc độ di chuyển (pixel/giây)
     private int reward;            // Số tiền vàng thưởng cho người chơi khi hạ gục
     private boolean reachedBase;   // Cờ đánh dấu quái đã chạm nhà chính hay chưa
-    private Image sprite;          // Hình ảnh quái, nếu có
+    private Animation anim;        // Khai báo thuộc tính animation
 
     private final List<Point2D> waypoints = new ArrayList<>(); // Danh sách các điểm mốc trên đường đi
     private int currentWaypointIndex = 0;                      // Chỉ số điểm mốc mục tiêu hiện tại
@@ -53,10 +55,13 @@ public class Enemy extends Entity implements Poolable {
         this.speed = type.getSpeed(); // Lấy tốc độ từ cấu hình
         this.reward = type.getReward(); // Lấy phần thưởng vàng từ cấu hình
         this.reachedBase = false;
-        this.sprite = loadSprite(type);
+
+        Image[] frames = loadSprite(type); // Khởi tạo animation với 4 frames ảnh
+        this.anim = new Animation(frames, 0.15);
 
         // Tính toán kích thước quái
-        float size = GameConfig.GRID_CELL_SIZE * 0.8f;
+        float scale = (type == EnemyType.DRAGON) ? 1.4f : 1.0f;
+        float size = GameConfig.GRID_CELL_SIZE * scale;
         this.width = size;
         this.height = size;
 
@@ -87,6 +92,10 @@ public class Enemy extends Entity implements Poolable {
     public void update(double deltaTime) {
         if (!active || reachedBase) {
             return; // Nếu quái chưa được kích hoạt hoặc đã chạm đích thì bỏ qua
+        }
+        // Cập nhập frames animation
+        if (anim != null) {
+            anim.update(deltaTime);
         }
 
         if (waypoints.isEmpty() || currentWaypointIndex >= waypoints.size()) {
@@ -138,8 +147,10 @@ public class Enemy extends Entity implements Poolable {
             return; // Ẩn quái nếu trạng thái không hoạt động
         }
 
-        if (sprite != null && !sprite.isError()) {
-            gc.drawImage(sprite, x, y, width, height);
+        Image currentImg = (anim != null) ? anim.getCurrentFrame() : null; // Lấy Frames ảnh từ animation
+
+        if (currentImg != null && !currentImg.isError()) {
+            gc.drawImage(currentImg, x, y, width, height);
         } else {
             // Tô màu và vẽ hình tròn đại diện cho quái nếu không có ảnh
             gc.setFill(getColorForType());
@@ -230,7 +241,10 @@ public class Enemy extends Entity implements Poolable {
         this.speed = 0;
         this.reward = 0;
         this.reachedBase = false;
-        this.sprite = null;
+        if (anim != null) {
+            anim.reset();
+        }
+        this.anim = null;
         this.active = false;
         this.x = 0;
         this.y = 0;
@@ -240,20 +254,25 @@ public class Enemy extends Entity implements Poolable {
         this.currentWaypointIndex = 0;
     }
 
-    private Image loadSprite(EnemyType type) {
+    private Image[] loadSprite(EnemyType type) {
         if (type == null) {
             return null;
         }
 
-        String path = type.getSpritePath();
-        try (InputStream is = getClass().getResourceAsStream(path)) {
-            if (is != null) {
-                return new Image(is);
+        Image[] frames = new Image[4];
+        String prefix = type.getSpritePrefix();
+
+        for (int i = 1; i <= 4; i++) {
+            String path = prefix + i + ".png";
+            try (InputStream is = getClass().getResourceAsStream(path)) {
+                if (is != null) {
+                    frames[i - 1] = new Image(is); // i=1 -> frames[0]
+                }
+            } catch (Exception e) {
+                System.err.println("Không thể load sprite enemy: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.err.println("Không thể load sprite enemy: " + e.getMessage());
         }
-        return null;
+        return frames;
     }
 
     private Cell findCell(MapModel mapModel, CellType type) {
@@ -280,20 +299,20 @@ public class Enemy extends Entity implements Poolable {
     }
 
     public enum EnemyType {
-        GOBLIN(GameConfig.ENEMY_GOBLIN_HP, GameConfig.ENEMY_GOBLIN_SPEED, GameConfig.ENEMY_GOBLIN_REWARD, "/assets/goblin.png"),
-        ORC(GameConfig.ENEMY_ORC_HP, GameConfig.ENEMY_ORC_SPEED, GameConfig.ENEMY_ORC_REWARD, "/assets/orc.png"),
-        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, "/assets/dragon.png");
+        GOBLIN(GameConfig.ENEMY_GOBLIN_HP, GameConfig.ENEMY_GOBLIN_SPEED, GameConfig.ENEMY_GOBLIN_REWARD, "/assets/quai1."),
+        ORC(GameConfig.ENEMY_ORC_HP, GameConfig.ENEMY_ORC_SPEED, GameConfig.ENEMY_ORC_REWARD, "/assets/quai2."),
+        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, "/assets/Boss");
 
         private final float hp;
         private final float speed;
         private final int reward;
-        private final String spritePath;
+        private final String spritePrefix;
 
-        EnemyType(float hp, float speed, int reward, String spritePath) {
+        EnemyType(float hp, float speed, int reward, String spritePrefix) {
             this.hp = hp;
             this.speed = speed;
             this.reward = reward;
-            this.spritePath = spritePath;
+            this.spritePrefix = spritePrefix;
         }
 
         public float getHp() {
@@ -308,8 +327,8 @@ public class Enemy extends Entity implements Poolable {
             return reward;
         }
 
-        public String getSpritePath() {
-            return spritePath;
+        public String getSpritePrefix() {
+            return spritePrefix;
         }
     }
 }

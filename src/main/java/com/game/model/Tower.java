@@ -31,16 +31,15 @@ public class Tower extends Entity {
             this.imagePath = imagePath;
         }
 
-        public float getCost() { return cost; }
         public float getRange() { return range; }
         public float getFireRate() { return fireRate; }
         public Color getColor() { return color; }
         public String getImagePath() { return imagePath; }
     }
 
-    private TowerType type;
-    private float range;
-    private float fireRate;
+    private final TowerType type;
+    private final float range;
+    private final float fireRate;
     private float cooldownTimer; // Bộ đếm thời gian nạp đạn
     private Image sprite;        // Hình ảnh sprite đại diện cho tháp
 
@@ -55,8 +54,8 @@ public class Tower extends Entity {
         super(
             gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 0.8f) / 2f,
             gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 0.8f) / 2f,
-            GameConfig.GRID_CELL_SIZE * 0.8f,
-            GameConfig.GRID_CELL_SIZE * 0.8f
+            GameConfig.GRID_CELL_SIZE * 1.0f,
+            GameConfig.GRID_CELL_SIZE * 1.0f
         );
         this.type = type;
         this.range = type.getRange();
@@ -169,8 +168,4 @@ public class Tower extends Entity {
             gc.strokeOval(towerCenterX - range, towerCenterY - range, range * 2, range * 2);
         }
     }
-
-    // Getters
-    public TowerType getType() { return type; }
-    public float getRange() { return range; }
 }
