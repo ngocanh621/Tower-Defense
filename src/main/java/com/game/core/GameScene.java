@@ -29,6 +29,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+
 public class GameScene {
 
     private final Canvas canvas;
@@ -47,6 +50,14 @@ public class GameScene {
     // Thêm hiệu ứng hover để hiện vị trí đặt được tháp
     private int hoverCol = -1; // -1 nghĩa là chuột đang ở ngoài Canvas
     private int hoverRow = -1;
+
+    // Vị trí ô đang mở Menu xây dựng tháp (-1 nếu chưa mở)
+    private int selectedCol = -1;
+    private int selectedRow = -1;
+
+    // Kích thước menu chọn tháp (Popup)
+    private final double menuWidth = 140;
+    private final double menuHeight = 70;
 
     public GameScene(Canvas canvas, GraphicsContext gc) {
         this.canvas = canvas;
@@ -212,7 +223,10 @@ public class GameScene {
         // Step 5': Hiển thị hiệu ứng hover tại vị trí chuột
         renderTileHover();
 
-        // Step 6: Hiển thị giao diện HUD (Máu, Vàng, Wave)
+        // Step 6: Hiển thị Menu chọn tháp nếu đang chọn ô
+        renderBuildMenu();
+
+        // Step 7: Hiển thị giao diện HUD (Máu, Vàng, Wave)
         hudRenderer.render(gc, playerState, waveManager);
     }
 
@@ -263,39 +277,164 @@ public class GameScene {
             }
         }
     }
-    
-
 
     public void handleKeyPress(KeyEvent event) {
     }
 
     /**
-     * Xử lý sự kiện click chuột để đặt Tháp
+     * Xử lý sự kiện click chuột để đặt Tháp hoặc mở Menu chọn Tháp
      */
     public void handleMouseClick(MouseEvent event) {
-        // Chỉ xử lý click chuột trái
         if (event.getButton() != MouseButton.PRIMARY) return;
 
         double mouseX = event.getX();
         double mouseY = event.getY();
+
+        // 1. NẾU MENU ĐANG MỞ: Kiểm tra click chọn nút trong Menu
+        if (selectedCol != -1 && selectedRow != -1) {
+            TowerType selectedType = checkMenuOptionClick(mouseX, mouseY);
+            if (selectedType != null) {
+                buildTowerAtSelectedCell(selectedType);
+                selectedCol = -1;
+                selectedRow = -1;
+                return;
+            }
+        }
+
+        // 2. TÍNH TOÁN Ô CỜ ĐƯỢC CLICK
         int col = (int) (mouseX / GameConfig.GRID_CELL_SIZE);
         int row = (int) (mouseY / GameConfig.GRID_CELL_SIZE);
 
         Cell cell = mapModel.getCell(row, col);
 
-        // Kiểm tra xem vị trí ô có hợp lệ và là ô đất trống không
+        // 3. NẾU CLICK VÀO Ô ĐẶT ĐƯỢC THÁP -> MỞ MENU TẠI Ô ĐÓ
         if (cell != null && cell.canPlaceTower()) {
-            // 1. Khởi tạo tháp mới (ở đây mặc định tạo TowerType.GUN)
-            Tower tower = new Tower(col, row, TowerType.GUN);
-            towers.add(tower);
-
-            // 2. Cập nhật loại ô thành OCCUPIED để không đè tháp khác lên
-            cell.setType(CellType.OCCUPIED);
-
-            System.out.println(">>> Đã đặt Tháp tại Row: " + row + ", Col: " + col);
+            this.selectedCol = col;
+            this.selectedRow = row;
         } else {
-            System.out.println(">>> Không thể đặt tháp tại Row: " + row + ", Col: " + col);
+            // Click ra vị trí không hợp lệ -> Đóng menu
+            this.selectedCol = -1;
+            this.selectedRow = -1;
         }
+    }
+
+    /**
+     * Xử lý mua tháp khi người chơi chọn trong Menu
+     */
+    private void buildTowerAtSelectedCell(TowerType type) {
+        Cell cell = mapModel.getCell(selectedRow, selectedCol);
+        if (cell != null && cell.canPlaceTower()) {
+            int cost = (int) type.getCost();
+            if (playerState.spendGold(cost)) {
+                Tower tower = new Tower(selectedCol, selectedRow, type);
+                towers.add(tower);
+                cell.setType(CellType.OCCUPIED);
+                System.out.println(">>> Đã mua tháp " + type + " tại Row: " + selectedRow + ", Col: " + selectedCol);
+            } else {
+                System.out.println(">>> Không đủ vàng mua tháp " + type + " (Cần " + cost + " Gold)");
+            }
+        }
+    }
+
+    /**
+     * Kiểm tra xem click chuột có trúng nút bấm nào trong Menu chọn tháp không
+     */
+    private TowerType checkMenuOptionClick(double mouseX, double mouseY) {
+        double cellSize = GameConfig.GRID_CELL_SIZE;
+        double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
+        double menuY = selectedRow * cellSize - menuHeight - 10;
+
+        if (menuX < 10) menuX = 10;
+        if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
+        if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 10;
+
+        double btn1X = menuX + 8;
+        double btn1Y = menuY + 24;
+        double btn2X = menuX + 72;
+        double btn2Y = menuY + 24;
+        double btnW = 60;
+        double btnH = 38;
+
+        if (mouseX >= btn1X && mouseX <= btn1X + btnW && mouseY >= btn1Y && mouseY <= btn1Y + btnH) {
+            return TowerType.GUN;
+        }
+        if (mouseX >= btn2X && mouseX <= btn2X + btnW && mouseY >= btn2Y && mouseY <= btn2Y + btnH) {
+            return TowerType.SLOW;
+        }
+
+        return null;
+    }
+
+    /**
+     * Vẽ Menu Popup lựa chọn mua tháp
+     */
+   private void renderBuildMenu() {
+        if (selectedCol == -1 || selectedRow == -1) return;
+
+        double cellSize = GameConfig.GRID_CELL_SIZE;
+
+        // Highlight ô cờ đang chọn (Viền Vàng)
+        gc.setStroke(Color.rgb(184, 134, 11, 0.8));
+        gc.setLineWidth(3);
+        gc.strokeRect(selectedCol * cellSize, selectedRow * cellSize, cellSize, cellSize);
+
+        // Vị trí Menu
+        double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
+        double menuY = selectedRow * cellSize - menuHeight - 10;
+
+        if (menuX < 10) menuX = 10;
+        if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
+        if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 10;
+
+        // Khung nền Menu Popup mờ kính
+        gc.setFill(Color.rgb(62, 39, 25, 0.95));
+        gc.fillRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
+
+        gc.setStroke(Color.rgb(139, 90, 43));
+        gc.setLineWidth(1.5);
+        gc.strokeRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
+
+        // Tiêu đề Menu
+        gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
+        gc.setFill(Color.rgb(255, 248, 220));
+        gc.fillText("SELECT TOWER", menuX + 20, menuY + 16);
+
+        // Nút 1: GUN TOWER (100G)
+        double btn1X = menuX + 8;
+        double btn1Y = menuY + 24;
+        double btnW = 60;
+        double btnH = 38;
+
+        boolean canAffordGun = playerState.getGold() >= TowerType.GUN.getCost();
+        gc.setFill(canAffordGun ? Color.rgb(160, 82, 45) : Color.rgb(80, 80, 80, 0.7));
+        gc.fillRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
+        gc.setStroke(canAffordGun ? Color.rgb(218, 165, 32) : Color.GRAY);
+        gc.setLineWidth(1);
+        gc.strokeRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
+
+        gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
+        gc.setFill(Color.rgb(255, 248, 220));
+        gc.fillText("🔫 GUN", btn1X + 8, btn1Y + 16);
+        gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 10));
+        gc.setFill(canAffordGun ? Color.rgb(255, 215, 0) : Color.LIGHTGRAY);
+        gc.fillText((int)TowerType.GUN.getCost() + "G", btn1X + 16, btn1Y + 30);
+
+        // Nút 2: SLOW TOWER
+        double btn2X = menuX + 72;
+        double btn2Y = menuY + 24;
+
+        boolean canAffordSlow = playerState.getGold() >= TowerType.SLOW.getCost();
+        gc.setFill(canAffordSlow ? Color.rgb(25, 25, 112) : Color.rgb(80, 80, 80, 0.7));
+        gc.fillRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
+        gc.setStroke(canAffordSlow ? Color.rgb(100, 149, 237) : Color.GRAY);
+        gc.strokeRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
+
+        gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
+        gc.setFill(Color.rgb(255, 248, 220));
+        gc.fillText("❄️ SLOW", btn2X + 5, btn2Y + 16);
+        gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 10));
+        gc.setFill(canAffordSlow ? Color.rgb(255, 215, 0) : Color.LIGHTGRAY);
+        gc.fillText((int)TowerType.SLOW.getCost() + "G", btn2X + 16, btn2Y + 30);
     }
 
     /**

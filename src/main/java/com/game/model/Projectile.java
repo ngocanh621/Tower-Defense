@@ -15,6 +15,7 @@ public class Projectile extends Entity implements Poolable {
     private Enemy target;
     private float damage;
     private float speed;
+    private boolean isSlow;
     private Image sprite;
 
     /**
@@ -28,14 +29,8 @@ public class Projectile extends Entity implements Poolable {
 
     /**
      * Khởi tạo thông số đạn khi được bắn ra.
-     * 
-     * @param startX Vị trí xuất phát X
-     * @param startY Vị trí xuất phát Y
-     * @param target Quái vật mục tiêu
-     * @param damage Sát thương gây ra
-     * @param speed Tốc độ bay (pixel/giây)
      */
-    public void initialize(float startX, float startY, Enemy target, float damage, float speed) {
+    public void initialize(float startX, float startY, Enemy target, float damage, float speed, boolean isSlow) {
         this.x = startX;
         this.y = startY;
         this.width = 10f;
@@ -43,8 +38,13 @@ public class Projectile extends Entity implements Poolable {
         this.target = target;
         this.damage = damage;
         this.speed = speed;
+        this.isSlow = isSlow;
         this.active = true;
         this.sprite = loadSprite();
+    }
+
+    public void initialize(float startX, float startY, Enemy target, float damage, float speed) {
+        initialize(startX, startY, target, damage, speed, false);
     }
 
     private Image loadSprite() {
@@ -87,6 +87,10 @@ public class Projectile extends Entity implements Poolable {
         // Nếu đạn chạm tới mục tiêu hoặc va chạm hình hộp
         if (distance <= stepDistance || overlaps(target)) {
             target.takeDamage(damage);
+            if (isSlow) {
+                // Làm chậm quái còn 50% tốc độ trong 2.5 giây
+                target.applySlow(0.5f, 2.5f);
+            }
             active = false;
         } else {
             // Tịnh tiến đạn về phía mục tiêu
@@ -101,13 +105,13 @@ public class Projectile extends Entity implements Poolable {
             return;
         }
 
-        if (sprite != null) {
+        if (sprite != null && !isSlow) {
             gc.drawImage(sprite, x, y, width, height);
         } else {
-            // Fallback vẽ đạn dạng hình tròn màu vàng
-            gc.setFill(Color.YELLOW);
+            // Đạn Slow vẽ màu xanh Cyan rực rỡ, đạn thường màu vàng
+            gc.setFill(isSlow ? Color.CYAN : Color.YELLOW);
             gc.fillOval(x, y, width, height);
-            gc.setStroke(Color.ORANGE);
+            gc.setStroke(isSlow ? Color.BLUE : Color.ORANGE);
             gc.setLineWidth(1);
             gc.strokeOval(x, y, width, height);
         }

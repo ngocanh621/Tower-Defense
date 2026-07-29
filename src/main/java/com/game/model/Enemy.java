@@ -43,10 +43,11 @@ public class Enemy extends Entity implements Poolable {
         this.active = false; // Mặc định quái "ngủ đông" trong kho
     }
 
+    private float slowTimer = 0f;       // Thời gian hiệu ứng slow còn lại (giây)
+    private float slowFactor = 1.0f;     // Hệ số làm chậm (ví dụ 0.5f nghĩa là giảm 50% tốc độ)
+
     /**
      * Khởi tạo các thuộc tính và vị trí xuất hiện của quái trên bản đồ.
-     * * @param type     Loại quái muốn sinh ra
-     * @param mapModel Bản đồ dữ liệu hiện tại để tìm điểm SPAWN và BASE
      */
     public void initialize(EnemyType type, MapModel mapModel) {
         this.type = type;
@@ -55,6 +56,8 @@ public class Enemy extends Entity implements Poolable {
         this.speed = type.getSpeed(); // Lấy tốc độ từ cấu hình
         this.reward = type.getReward(); // Lấy phần thưởng vàng từ cấu hình
         this.reachedBase = false;
+        this.slowTimer = 0f;
+        this.slowFactor = 1.0f;
 
         Image[] frames = loadSprite(type); // Khởi tạo animation với 4 frames ảnh
         this.anim = new Animation(frames, 0.15);
@@ -85,14 +88,33 @@ public class Enemy extends Entity implements Poolable {
     }
 
     /**
+     * Gây hiệu ứng làm chậm lên quái
+     * @param factor Tỷ lệ tốc độ còn lại (vd: 0.5f nghĩa là còn 50% tốc độ)
+     * @param duration Thời gian làm chậm (giây)
+     */
+    public void applySlow(float factor, float duration) {
+        this.slowFactor = factor;
+        this.slowTimer = duration;
+    }
+
+    /**
      * Cập nhật logic di chuyển của quái theo từng khung hình (Update loop).
-     * * @param deltaTime Khoảng thời gian trôi qua giữa 2 khung hình (giây)
      */
     @Override
     public void update(double deltaTime) {
         if (!active || reachedBase) {
             return; // Nếu quái chưa được kích hoạt hoặc đã chạm đích thì bỏ qua
         }
+
+        // Cập nhật đếm ngược hiệu ứng slow
+        if (slowTimer > 0) {
+            slowTimer -= deltaTime;
+            if (slowTimer <= 0) {
+                slowTimer = 0;
+                slowFactor = 1.0f; // Hết slow, khôi phục tốc độ bình thường
+            }
+        }
+
         // Cập nhập frames animation
         if (anim != null) {
             anim.update(deltaTime);
@@ -103,8 +125,9 @@ public class Enemy extends Entity implements Poolable {
             return;
         }
 
-        // Bước di chuyển trong khung hình hiện tại
-        float remainingStep = (float) (speed * deltaTime);
+        // Tính tốc độ thực tế (đã áp dụng hệ số làm chậm slowFactor)
+        float currentSpeed = speed * slowFactor;
+        float remainingStep = (float) (currentSpeed * deltaTime);
 
         // Vòng lặp tịnh tiến mượt qua nhiều điểm mốc nếu tốc độ cao
         while (remainingStep > 0 && currentWaypointIndex < waypoints.size()) {
@@ -158,6 +181,15 @@ public class Enemy extends Entity implements Poolable {
             gc.setStroke(Color.WHITE);
             gc.setLineWidth(1);
             gc.strokeOval(x, y, width, height);
+        }
+
+        // Vẽ hiệu ứng đóng băng / làm chậm màu xanh dương mờ lên quái khi bị Slow
+        if (slowTimer > 0) {
+            gc.setFill(Color.rgb(56, 189, 248, 0.4));
+            gc.fillOval(x - 2, y - 2, width + 4, height + 4);
+            gc.setStroke(Color.CYAN);
+            gc.setLineWidth(1.5);
+            gc.strokeOval(x - 2, y - 2, width + 4, height + 4);
         }
 
         // Vẽ thanh máu ngay trên đầu quái

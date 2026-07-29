@@ -24,8 +24,8 @@ public class GameConfig {
     public static final int STARTING_GOLD = 100;
 
     // Tower settings
-    public static final float TOWER_GUN_COST = 100f;
-    public static final float TOWER_SLOW_COST = 150f;
+    public static final float TOWER_GUN_COST = 5f;
+    public static final float TOWER_SLOW_COST = 10f;
 
     public static final float TOWER_GUN_RANGE = 150f;
     public static final float TOWER_GUN_FIRE_RATE = 1.0f; 

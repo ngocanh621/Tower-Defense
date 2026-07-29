@@ -31,6 +31,7 @@ public class Tower extends Entity {
             this.imagePath = imagePath;
         }
 
+        public float getCost() { return cost; }
         public float getRange() { return range; }
         public float getFireRate() { return fireRate; }
         public Color getColor() { return color; }
@@ -119,7 +120,8 @@ public class Tower extends Entity {
         float startX = x + width / 2f - 5f;
         float startY = y + height / 2f - 5f;
         Projectile projectile = new Projectile();
-        projectile.initialize(startX, startY, target, GameConfig.PROJECTILE_DAMAGE, GameConfig.PROJECTILE_SPEED);
+        boolean isSlow = (type == TowerType.SLOW);
+        projectile.initialize(startX, startY, target, GameConfig.PROJECTILE_DAMAGE, GameConfig.PROJECTILE_SPEED, isSlow);
         return projectile;
     }
 
