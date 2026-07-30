@@ -12,6 +12,7 @@ import com.game.model.Tower;
 import com.game.model.Tower.TowerType;
 import com.game.system.EventBus;
 import com.game.system.GameEvent;
+import com.game.system.SoundManager;
 import com.game.util.Constants;
 import com.game.util.ExplosionEffect;
 import com.game.util.GameConfig;
@@ -32,6 +33,7 @@ import javafx.scene.paint.Color;
 
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 
 public class GameScene {
 
@@ -60,6 +62,10 @@ public class GameScene {
     // Kích thước menu chọn tháp (Popup)
     private final double menuWidth = 140;
     private final double menuHeight = 70;
+
+    private boolean isGameOver = false;
+    private boolean isNewRecord = false;
+    private int finalScore = 0;
 
     public GameScene(Canvas canvas, GraphicsContext gc) {
         this.canvas = canvas;
@@ -135,6 +141,17 @@ public class GameScene {
     }
 
     public void update(double deltaTime) {
+        // === KHÔNG CẬP NHẬT TRẠNG THÁI GAME KHI ĐÃ GAME OVER ===
+        if (isGameOver) {
+            return;
+        }
+
+        // === KIỂM TRA ĐIỀU KIỆN THUA (HẾT MẠNG) ===
+        if (playerState.getHealth() <= 0) {
+            triggerGameOver();
+            return;
+        }
+
         // Cập nhật WaveManager để sinh quái vật theo sóng
         waveManager.update(deltaTime, mapModel, enemies);
 
@@ -186,6 +203,24 @@ public class GameScene {
     }
 
     /**
+     * Kích hoạt trạng thái Game Over, tính điểm và lưu kỷ lục.
+     */
+    private void triggerGameOver() {
+        this.isGameOver = true;
+        this.finalScore = playerState.getScore();
+
+        int currentBest = SceneManager.loadHighScore();
+        if (finalScore > currentBest) {
+            this.isNewRecord = true;
+            SceneManager.saveHighScore(finalScore); // Lưu kỷ lục mới
+        }
+
+        // Dừng nhạc nền gameplay
+        SoundManager.getInstance().stopBGM();
+        EventBus.getInstance().publish(GameEvent.GAME_OVER, finalScore);
+    }
+
+    /**
      * Vẽ hiệu ứng tô sáng (Highlight) ô cờ đang được con trỏ chuột hover.
      */
     private void renderTileHover() {
@@ -201,7 +236,7 @@ public class GameScene {
 
         Cell cell = mapModel.getCell(hoverRow, hoverCol);
 
-        // Nút bấm kiểm tra xem ô này có cho phép đặt tháp hay không
+        // kiểm tra xem ô này có cho phép đặt tháp hay không
         boolean canPlace = (cell != null && cell.canPlaceTower());
 
         if (canPlace) {
@@ -256,6 +291,73 @@ public class GameScene {
 
         // Step 7: Hiển thị giao diện HUD (Máu, Vàng, Wave)
         hudRenderer.render(gc, playerState, waveManager);
+
+        // Step 8: Vẽ bảng thông báo GAME OVER đè lên trên nếu thua
+        if (isGameOver) {
+            renderGameOverOverlay();
+        }
+    }
+
+    /**
+     * Vẽ bảng pop-up Game Over chuyên nghiệp
+     */
+    private void renderGameOverOverlay() {
+        double width = GameConfig.WINDOW_WIDTH;
+        double height = GameConfig.WINDOW_HEIGHT;
+
+        // 1. Lớp phủ đen mờ toàn màn hình
+        gc.setFill(Color.rgb(0, 0, 0, 0.75));
+        gc.fillRect(0, 0, width, height);
+
+        // 2. Kích thước & Vị trí khung bảng điểm
+        double boxW = 440;
+        double boxH = 290;
+        double boxX = (width - boxW) / 2;
+        double boxY = (height - boxH) / 2;
+
+        // Nền khung bảng
+        gc.setFill(Color.web("#1e293b"));
+        gc.fillRoundRect(boxX, boxY, boxW, boxH, 20, 20);
+
+        // Viền khung: Vàng đồng nếu lập kỷ lục, Xám sẫm nếu bình thường
+        gc.setStroke(isNewRecord ? Color.web("#f59e0b") : Color.web("#475569"));
+        gc.setLineWidth(3.5);
+        gc.strokeRoundRect(boxX, boxY, boxW, boxH, 20, 20);
+
+        // 3. Tiêu đề "GAME OVER"
+        gc.setFill(Color.web("#ef4444"));
+        gc.setFont(Font.font("Arial", FontWeight.BOLD, 38));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.fillText("GAME OVER", width / 2, boxY + 55);
+
+        // 4. Nếu đạt kỷ lục mới -> Dòng thông báo chúc mừng đặc biệt
+        if (isNewRecord) {
+            gc.setFill(Color.web("#f59e0b"));
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 19));
+            gc.fillText("🎉 CHÚC MỪNG KỶ LỤC MỚI! 🎉", width / 2, boxY + 95);
+        } else {
+            gc.setFill(Color.web("#94a3b8"));
+            gc.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
+            gc.fillText("Tháp của bạn đã bị tiêu diệt!", width / 2, boxY + 95);
+        }
+
+        // 5. Hiển thị Điểm số hiện tại & Best Score
+        gc.setFont(Font.font("Arial", FontWeight.BOLD, 20));
+        gc.setFill(Color.WHITE);
+        gc.fillText("Score: " + finalScore, width / 2, boxY + 145);
+
+        int bestScore = SceneManager.loadHighScore();
+        gc.setFont(Font.font("Arial", FontWeight.BOLD, 18));
+        gc.setFill(Color.web("#f59e0b"));
+        gc.fillText("🏆 Best Score: " + bestScore, width / 2, boxY + 180);
+
+        // 6. Hướng dẫn nút bấm
+        gc.setFont(Font.font("Arial", FontWeight.BOLD, 14));
+        gc.setFill(Color.web("#cbd5e1"));
+        gc.fillText("Nhấn [ ESC ] để trở về Menu chính", width / 2, boxY + 245);
+
+        // Reset alignment về LEFT mặc định để tránh ảnh hưởng đoạn render khác
+        gc.setTextAlign(TextAlignment.LEFT);
     }
 
     /**
@@ -322,6 +424,7 @@ public class GameScene {
      * Xử lý sự kiện click chuột để đặt Tháp hoặc mở Menu chọn Tháp
      */
     public void handleMouseClick(MouseEvent event) {
+        if (isGameOver) return; // Khóa tương tác chuột khi thua
         if (event.getButton() != MouseButton.PRIMARY) return;
 
         double mouseX = event.getX();
@@ -500,4 +603,6 @@ public class GameScene {
     public PlayerState getPlayerState() {
         return playerState;
     }
+
+    public boolean isGameOver() {return isGameOver;}
 }
