@@ -38,11 +38,13 @@ public class Tower extends Entity {
         public String getImagePath() { return imagePath; }
     }
 
+    private final int gridCol;
+    private final int gridRow;
     private final TowerType type;
     private final float range;
     private final float fireRate;
-    private float cooldownTimer; // Bộ đếm thời gian nạp đạn
-    private Image sprite;        // Hình ảnh sprite đại diện cho tháp
+    private float cooldownTimer;
+    private Image sprite;
 
     /**
      * Khởi tạo Tháp phòng thủ tại tọa độ ô vuông
@@ -51,19 +53,29 @@ public class Tower extends Entity {
      * @param type Loại tháp (GUN hoặc SLOW)
      */
     public Tower(int gridCol, int gridRow, TowerType type) {
-        // Tính toán tọa độ pixel thực tế ở giữa ô lưới
+        // Căn chỉnh tháp vừa vặn chính giữa ô cờ (40x40)
         super(
-            gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 1.5f) / 2f,
-            gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.GRID_CELL_SIZE * 1.5f) / 2f,
-                GameConfig.GRID_CELL_SIZE * 1.5f,
-                GameConfig.GRID_CELL_SIZE * 1.5f
+            gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - 44f) / 2f,
+            gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - 44f) / 2f,
+            44f,
+            44f
         );
+        this.gridCol = gridCol;
+        this.gridRow = gridRow;
         this.type = type;
         this.range = type.getRange();
         this.fireRate = type.getFireRate();
         this.cooldownTimer = 0f;
         
         loadSprite();
+    }
+
+    public int getGridCol() {
+        return gridCol;
+    }
+
+    public int getGridRow() {
+        return gridRow;
     }
 
     /**

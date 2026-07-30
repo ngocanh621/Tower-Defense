@@ -27,40 +27,50 @@ public class MapModel {
      * Khởi tạo bản đồ khớp vệt đường vàng trên ảnh map.png (1280x720).
      */
     private void initializeGrid() {
-        // 1. Khởi tạo toàn bộ các ô ban đầu là EMPTY (đất trống/cỏ xanh)
+        // 1. Khởi tạo toàn bộ các ô ban đầu là PATH (không cho phép đặt tháp ở bãi cỏ/cây cối)
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                grid[r][c] = new Cell(r, c, CellType.EMPTY);
+                grid[r][c] = new Cell(r, c, CellType.PATH);
             }
         }
 
-        // 2. Danh sách mốc tọa độ chính xác của con đường đất vàng trên map.png
+        // 2. Danh sách mốc tọa độ chính xác của con đường đất vàng trên map3.png
         double[][] rawControlPoints = {
-            {0, 300},      // Cổng xuất phát bên trái
-            {120, 300},
-            {260, 390},    // Khúc uốn cua xuống
-            {420, 370},
-            {560, 260},
-            {630, 190},    // Đỉnh cua phía trên
-            {730, 220},
-            {770, 360},    // Vòng cua xuống phải
-            {680, 520},
-            {450, 530},    // Vòng lặp giữa kéo về trái
-            {220, 540},
-            {150, 620},    // Góc dưới bên trái
-            {240, 665},
-            {480, 665},    // Đoạn đáy dưới cùng
-            {720, 665},
-            {840, 630},
-            {730, 500},    // Cua ngoặt dốc
-            {800, 450},
-            {980, 450},    // Đoạn ngang bên phải
+            {0, 210},
+            {120, 245},
+            {220, 285},
+            {350, 300},
+            {480, 280},
+            {570, 245},
+            {630, 225},
+            {700, 240},
+            {730, 270},
+            {730, 350},
+            {680, 380},
+            {615, 400},
+            {500, 405},
+            {350, 400},
+            {230, 420},
+            {175, 465},
+            {170, 520},
+            {170, 570},
+            {215, 600},
+            {290, 590},
+            {375, 575},
+            {550, 550},
+            {745, 610},
+            {830, 630},
+            {870, 545},
+            {780, 470},
+            {800, 430},
+            {905, 405},
+            {1045, 445},
             {1150, 410},
-            {1180, 310},   // Vòng lượn quanh đầm lầy
-            {1080, 230},
-            {960, 230},
-            {990, 150},    // Lối vào lều xanh
-            {1080, 150}    // Đích căn cứ Lều Xanh (BASE)
+            {1150, 345},
+            {970, 300},
+            {930, 250},
+            {960, 200},
+            {1055, 145}
         };
 
         // 3. Nội suy mượt mà giữa các điểm mốc (Subdivide/Interpolate)
@@ -85,7 +95,7 @@ public class MapModel {
         double[] last = rawControlPoints[rawControlPoints.length - 1];
         pathWaypoints.add(new Point2D(last[0], last[1]));
 
-        // 4. Đánh dấu các ô nằm trên vệt đường vàng thành CellType.PATH
+        // 4. Đánh dấu các ô nằm trên con đường di chuyển của quái thành CellType.PATH
         double cellSize = GameConfig.GRID_CELL_SIZE;
         for (Point2D wp : pathWaypoints) {
             int col = (int) (wp.getX() / cellSize);
@@ -111,6 +121,25 @@ public class MapModel {
 
         if (baseRow >= 0 && baseRow < rows && baseCol >= 0 && baseCol < cols) {
             grid[baseRow][baseCol].setType(CellType.BASE);
+        }
+
+        // 6. ĐẶC BIỆT: Danh sách đúng 7 ô đất vàng được chỉ định chính xác trên map3
+        int[][] yellowBuildPatches = {
+            {8, 5},
+            {7, 15},
+            {15, 14},
+            {11, 16},
+            {12, 7},
+            {11, 22},
+            {9, 26}
+        };
+
+        for (int[] cellPos : yellowBuildPatches) {
+            int r = cellPos[0];
+            int c = cellPos[1];
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                grid[r][c].setType(CellType.EMPTY); // Đánh dấu ô vàng duy nhất này là EMPTY (cho phép đặt tháp)
+            }
         }
     }
 

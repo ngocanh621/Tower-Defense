@@ -115,7 +115,8 @@ public class GameScene {
     }
 
     private Image loadMapImage() {
-        String[] candidates = {"/assets/map.jpg", "/assets/map.png", "/assets/map.jpeg"};
+
+        String[] candidates = {"/assets/map3.jpg", "/assets/map3.png", "/assets/map3.jpeg"};
 
         for (String path : candidates) {
             try (InputStream is = getClass().getResourceAsStream(path)) {
@@ -360,6 +361,13 @@ public class GameScene {
     private void buildTowerAtSelectedCell(TowerType type) {
         Cell cell = mapModel.getCell(selectedRow, selectedCol);
         if (cell != null && cell.canPlaceTower()) {
+            // Kiểm tra chắc chắn chưa có tháp nào tại ô cờ này
+            boolean hasTower = towers.stream().anyMatch(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow);
+            if (hasTower) {
+                System.out.println(">>> Ô cờ này đã có tháp rồi!");
+                return;
+            }
+
             int cost = (int) type.getCost();
             if (playerState.spendGold(cost)) {
                 Tower tower = new Tower(selectedCol, selectedRow, type);
