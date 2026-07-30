@@ -41,10 +41,14 @@ public class Tower extends Entity {
     private final int gridCol;
     private final int gridRow;
     private final TowerType type;
-    private final float range;
-    private final float fireRate;
+    private float range;
+    private float fireRate;
     private float cooldownTimer;
     private Image sprite;
+
+    private int level = 1;
+    private static final int MAX_LEVEL = 3;
+    private int totalInvestedGold;
 
     /**
      * Khởi tạo Tháp phòng thủ tại tọa độ ô vuông
@@ -53,12 +57,12 @@ public class Tower extends Entity {
      * @param type Loại tháp (GUN hoặc SLOW)
      */
     public Tower(int gridCol, int gridRow, TowerType type) {
-        // Căn chỉnh tháp vừa vặn chính giữa ô cờ (40x40)
+        // Căn chỉnh tháp vừa vặn chính giữa ô cờ dựa trên GameConfig.TOWER_SIZE
         super(
-            gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - 44f) / 2f,
-            gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - 44f) / 2f,
-            44f,
-            44f
+            gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.TOWER_SIZE) / 2f,
+            gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.TOWER_SIZE) / 2f,
+            GameConfig.TOWER_SIZE,
+            GameConfig.TOWER_SIZE
         );
         this.gridCol = gridCol;
         this.gridRow = gridRow;
@@ -66,6 +70,8 @@ public class Tower extends Entity {
         this.range = type.getRange();
         this.fireRate = type.getFireRate();
         this.cooldownTimer = 0f;
+        this.level = 1;
+        this.totalInvestedGold = (int) type.getCost();
         
         loadSprite();
     }
@@ -76,6 +82,52 @@ public class Tower extends Entity {
 
     public int getGridRow() {
         return gridRow;
+    }
+
+    public TowerType getType() {
+        return type;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public float getRange() {
+        return range;
+    }
+
+    public boolean canUpgrade() {
+        return level < MAX_LEVEL;
+    }
+
+    /**
+     * Giá nâng cấp = 1.5 * giá gốc cho Lv2, 2.25 * giá gốc cho Lv3
+     */
+    public int getUpgradeCost() {
+        if (!canUpgrade()) return 0;
+        return (int) (type.getCost() * (1.5f * level));
+    }
+
+    /**
+     * Giá bán tháp = 70% tổng số vàng đã đầu tư
+     */
+    public int getSellValue() {
+        return (int) (totalInvestedGold * 0.7f);
+    }
+
+    /**
+     * Thực hiện nâng cấp tháp
+     */
+    public boolean upgrade() {
+        if (!canUpgrade()) return false;
+        int cost = getUpgradeCost();
+        totalInvestedGold += cost;
+        level++;
+        // Tăng tầm bắn 15% mỗi cấp
+        this.range = type.getRange() * (1.0f + (level - 1) * 0.15f);
+        // Tăng tốc độ bắn 10% mỗi cấp
+        this.fireRate = type.getFireRate() * (1.0f + (level - 1) * 0.10f);
+        return true;
     }
 
     /**
@@ -122,7 +174,7 @@ public class Tower extends Entity {
     }
 
     /**
-     * Bắn đạn hướng tới quái vật trong tầm bắn
+     * Bắn đạn hướng tới quái vật trong tầm bắn (Sát thương tăng +30% theo từng Level)
      */
     public Projectile fire(Enemy target) {
         if (!canFire() || target == null || !isEnemyInRange(target)) {
@@ -133,7 +185,10 @@ public class Tower extends Entity {
         float startY = y + height / 2f - 5f;
         Projectile projectile = new Projectile();
         boolean isSlow = (type == TowerType.SLOW);
-        projectile.initialize(startX, startY, target, GameConfig.PROJECTILE_DAMAGE, GameConfig.PROJECTILE_SPEED, isSlow);
+
+        // Tính sát thương dựa trên level (Tăng 30% mỗi cấp)
+        int damage = (int) (GameConfig.PROJECTILE_DAMAGE * (1.0f + (level - 1) * 0.30f));
+        projectile.initialize(startX, startY, target, damage, GameConfig.PROJECTILE_SPEED, isSlow);
         return projectile;
     }
 
@@ -173,7 +228,19 @@ public class Tower extends Entity {
             gc.strokeRect(x, y, width, height);
         }
 
-        // 2. DEBUG MODE: Vẽ vòng tròn đỏ thể hiện tầm bắn (Range)
+        // 2. VẼ NHÃN CẤP ĐỘ (LEVEL BADGE) PHÍA TRÊN THÁP
+        gc.setFill(Color.rgb(15, 23, 42, 0.85));
+        gc.fillRoundRect(x + width / 2f - 18, y - 6, 36, 15, 6, 6);
+        gc.setStroke(level == MAX_LEVEL ? Color.GOLD : Color.CYAN);
+        gc.setLineWidth(1.0);
+        gc.strokeRoundRect(x + width / 2f - 18, y - 6, 36, 15, 6, 6);
+
+        gc.setFont(javafx.scene.text.Font.font("Arial", javafx.scene.text.FontWeight.BOLD, 10));
+        gc.setFill(level == MAX_LEVEL ? Color.GOLD : Color.WHITE);
+        String levelStr = "Lv." + level;
+        gc.fillText(levelStr, x + width / 2f - 11, y + 5);
+
+        // 3. DEBUG MODE: Vẽ vòng tròn đỏ thể hiện tầm bắn (Range)
         if (Constants.DEBUG_COLLISION) {
             gc.setStroke(Color.rgb(255, 0, 0, 0.4));
             gc.setLineWidth(1);

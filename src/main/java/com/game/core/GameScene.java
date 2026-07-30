@@ -421,7 +421,7 @@ public class GameScene {
     }
 
     /**
-     * Xử lý sự kiện click chuột để đặt Tháp hoặc mở Menu chọn Tháp
+     * Xử lý sự kiện click chuột để đặt Tháp hoặc mở Menu chọn/quản lý Tháp
      */
     public void handleMouseClick(MouseEvent event) {
         if (isGameOver) return; // Khóa tương tác chuột khi thua
@@ -430,29 +430,70 @@ public class GameScene {
         double mouseX = event.getX();
         double mouseY = event.getY();
 
-        // 1. NẾU MENU ĐANG MỞ: Kiểm tra click chọn nút trong Menu
-        if (selectedCol != -1 && selectedRow != -1) {
-            TowerType selectedType = checkMenuOptionClick(mouseX, mouseY);
-            if (selectedType != null) {
-                buildTowerAtSelectedCell(selectedType);
-                selectedCol = -1;
-                selectedRow = -1;
-                return;
-            }
-        }
-
-        // 2. TÍNH TOÁN Ô CỜ ĐƯỢC CLICK
         int col = (int) (mouseX / GameConfig.GRID_CELL_SIZE);
         int row = (int) (mouseY / GameConfig.GRID_CELL_SIZE);
 
-        Cell cell = mapModel.getCell(row, col);
+        // 1. NẾU MENU ĐANG MỞ TẠI Ô CỜ HIỆN TẠI: Kiểm tra click vào các nút bấm trong Menu
+        if (selectedCol != -1 && selectedRow != -1) {
+            Tower existingTower = towers.stream()
+                .filter(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow)
+                .findFirst().orElse(null);
 
-        // 3. NẾU CLICK VÀO Ô ĐẶT ĐƯỢC THÁP -> MỞ MENU TẠI Ô ĐÓ
-        if (cell != null && cell.canPlaceTower()) {
-            this.selectedCol = col;
-            this.selectedRow = row;
+            if (existingTower != null) {
+                // Xử lý click trên Menu Quản Lý Tháp Đã Đặt (Upgrade / Sell)
+                int actionResult = checkManagementMenuOptionClick(mouseX, mouseY, existingTower);
+                if (actionResult == 1) { // Click UPGRADE
+                    if (existingTower.canUpgrade()) {
+                        int cost = existingTower.getUpgradeCost();
+                        if (playerState.spendGold(cost)) {
+                            existingTower.upgrade();
+                            System.out.println(">>> Đã nâng cấp tháp lên Level " + existingTower.getLevel());
+                        } else {
+                            System.out.println(">>> Không đủ vàng nâng cấp tháp (Cần " + cost + " Gold)");
+                        }
+                    }
+                    return;
+                } else if (actionResult == 2) { // Click SELL
+                    int refund = existingTower.getSellValue();
+                    playerState.addGold(refund);
+                    towers.remove(existingTower);
+                    Cell cell = mapModel.getCell(selectedRow, selectedCol);
+                    if (cell != null) {
+                        cell.setType(CellType.EMPTY);
+                    }
+                    System.out.println(">>> Đã bán tháp thu hồi " + refund + " Gold");
+                    selectedCol = -1;
+                    selectedRow = -1;
+                    return;
+                }
+            } else {
+                // Xử lý click trên Menu Mua Tháp Mới
+                TowerType selectedType = checkMenuOptionClick(mouseX, mouseY);
+                if (selectedType != null) {
+                    buildTowerAtSelectedCell(selectedType);
+                    selectedCol = -1;
+                    selectedRow = -1;
+                    return;
+                }
+            }
+        }
+
+        // 2. TÍNH TOÁN VÀ KIỂM TRA Ô CỜ VỪA ĐƯỢC CLICK
+        Cell cell = mapModel.getCell(row, col);
+        if (cell != null) {
+            Tower towerAtCell = towers.stream()
+                .filter(t -> t.getGridCol() == col && t.getGridRow() == row)
+                .findFirst().orElse(null);
+
+            if (cell.canPlaceTower() || towerAtCell != null) {
+                // Mở Menu tại ô cờ (Mua tháp mới HOẶC Quản lý tháp đã có)
+                this.selectedCol = col;
+                this.selectedRow = row;
+            } else {
+                this.selectedCol = -1;
+                this.selectedRow = -1;
+            }
         } else {
-            // Click ra vị trí không hợp lệ -> Đóng menu
             this.selectedCol = -1;
             this.selectedRow = -1;
         }
@@ -464,10 +505,8 @@ public class GameScene {
     private void buildTowerAtSelectedCell(TowerType type) {
         Cell cell = mapModel.getCell(selectedRow, selectedCol);
         if (cell != null && cell.canPlaceTower()) {
-            // Kiểm tra chắc chắn chưa có tháp nào tại ô cờ này
             boolean hasTower = towers.stream().anyMatch(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow);
             if (hasTower) {
-                System.out.println(">>> Ô cờ này đã có tháp rồi!");
                 return;
             }
 
@@ -481,6 +520,34 @@ public class GameScene {
                 System.out.println(">>> Không đủ vàng mua tháp " + type + " (Cần " + cost + " Gold)");
             }
         }
+    }
+
+    /**
+     * Kiểm tra click vào nút bấm trong Menu Quản Lý Tháp (1: UPGRADE, 2: SELL, 0: không trúng)
+     */
+    private int checkManagementMenuOptionClick(double mouseX, double mouseY, Tower tower) {
+        double cellSize = GameConfig.GRID_CELL_SIZE;
+        double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
+        double menuY = selectedRow * cellSize - menuHeight - 10;
+
+        if (menuX < 10) menuX = 10;
+        if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
+        if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 10;
+
+        double btn1X = menuX + 8;
+        double btn1Y = menuY + 24;
+        double btn2X = menuX + 72;
+        double btn2Y = menuY + 24;
+        double btnW = 60;
+        double btnH = 38;
+
+        if (mouseX >= btn1X && mouseX <= btn1X + btnW && mouseY >= btn1Y && mouseY <= btn1Y + btnH) {
+            return 1; // UPGRADE
+        }
+        if (mouseX >= btn2X && mouseX <= btn2X + btnW && mouseY >= btn2Y && mouseY <= btn2Y + btnH) {
+            return 2; // SELL
+        }
+        return 0;
     }
 
     /**
@@ -513,7 +580,7 @@ public class GameScene {
     }
 
     /**
-     * Vẽ Menu Popup lựa chọn mua tháp
+     * Vẽ Menu Popup lựa chọn mua tháp hoặc nâng cấp/bán tháp đã có
      */
    private void renderBuildMenu() {
         if (selectedCol == -1 || selectedRow == -1) return;
@@ -525,6 +592,94 @@ public class GameScene {
         gc.setLineWidth(3);
         gc.strokeRect(selectedCol * cellSize, selectedRow * cellSize, cellSize, cellSize);
 
+        // Kiểm tra xem tại ô cờ đang chọn có tháp sẵn hay chưa
+        Tower existingTower = towers.stream()
+            .filter(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow)
+            .findFirst().orElse(null);
+
+        if (existingTower != null) {
+            // VẼ VÒNG TRÒN BAN KÍNH TẦM BẮN (RANGE INDICATOR) MÀU XANH CYAN SÁNG
+            float centerX = existingTower.getX() + existingTower.getWidth() / 2f;
+            float centerY = existingTower.getY() + existingTower.getHeight() / 2f;
+            float range = existingTower.getRange();
+
+            gc.setStroke(Color.rgb(0, 220, 255, 0.85));
+            gc.setLineWidth(1.8);
+            gc.strokeOval(centerX - range, centerY - range, range * 2, range * 2);
+            gc.setFill(Color.rgb(0, 220, 255, 0.12));
+            gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
+
+            // VỊ TRÍ POPUP MENU QUẢN LÝ THÁP
+            double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
+            double menuY = selectedRow * cellSize - menuHeight - 10;
+
+            if (menuX < 10) menuX = 10;
+            if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
+            if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 10;
+
+            // Khung nền Menu Popup mờ kính
+            gc.setFill(Color.rgb(30, 41, 59, 0.95));
+            gc.fillRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
+
+            gc.setStroke(Color.rgb(56, 189, 248));
+            gc.setLineWidth(1.5);
+            gc.strokeRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
+
+            // Tiêu đề Menu
+            gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
+            gc.setFill(Color.rgb(224, 242, 254));
+            gc.fillText("TOWER  Lv." + existingTower.getLevel(), menuX + 22, menuY + 16);
+
+            double btn1X = menuX + 8;
+            double btn1Y = menuY + 24;
+            double btnW = 60;
+            double btnH = 38;
+
+            // NÚT 1: UPGRADE (NÂNG CẤP)
+            boolean canUpgrade = existingTower.canUpgrade();
+            int upgradeCost = existingTower.getUpgradeCost();
+            boolean canAffordUpgrade = canUpgrade && playerState.getGold() >= upgradeCost;
+
+            gc.setFill(canAffordUpgrade ? Color.rgb(16, 185, 129) : Color.rgb(71, 85, 105, 0.7));
+            gc.fillRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
+            gc.setStroke(canAffordUpgrade ? Color.rgb(52, 211, 153) : Color.GRAY);
+            gc.setLineWidth(1);
+            gc.strokeRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
+
+            gc.setFont(Font.font("Georgia", FontWeight.BOLD, 10));
+            gc.setFill(Color.WHITE);
+            gc.fillText("⬆️ UP", btn1X + 10, btn1Y + 16);
+
+            gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 9));
+            if (!canUpgrade) {
+                gc.setFill(Color.GOLD);
+                gc.fillText("MAX", btn1X + 18, btn1Y + 30);
+            } else {
+                gc.setFill(canAffordUpgrade ? Color.rgb(255, 215, 0) : Color.LIGHTGRAY);
+                gc.fillText(upgradeCost + "G", btn1X + 16, btn1Y + 30);
+            }
+
+            // NÚT 2: SELL (BÁN THÁP)
+            double btn2X = menuX + 72;
+            double btn2Y = menuY + 24;
+            int sellValue = existingTower.getSellValue();
+
+            gc.setFill(Color.rgb(225, 29, 72));
+            gc.fillRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
+            gc.setStroke(Color.rgb(251, 113, 133));
+            gc.strokeRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
+
+            gc.setFont(Font.font("Georgia", FontWeight.BOLD, 10));
+            gc.setFill(Color.WHITE);
+            gc.fillText("💰 SELL", btn2X + 8, btn2Y + 16);
+
+            gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 9));
+            gc.setFill(Color.rgb(255, 215, 0));
+            gc.fillText("+" + sellValue + "G", btn2X + 14, btn2Y + 30);
+            return;
+        }
+
+        // --- MENU MUA THÁP MỚI (NẾU Ô ĐÁT TRỐNG) ---
         // Vị trí Menu
         double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
         double menuY = selectedRow * cellSize - menuHeight - 10;
