@@ -37,7 +37,7 @@ public class HudRenderer {
         gc.fillRoundRect(x, y, width, height, 16, 16);
 
         // 2. Vẽ viền sáng cho khung HUD
-        gc.setStroke(Color.rgb(56, 189, 248, 0.6)); // Màu xanh Cyan nhạt
+        gc.setStroke(Color.web("#f59e0b", 0.8)); // Màu vàng cam sáng
         gc.setLineWidth(1.5);
         gc.strokeRoundRect(x, y, width, height, 16, 16);
 
@@ -73,10 +73,26 @@ public class HudRenderer {
         // 8. Hiển thị thông báo đếm ngược đợt sóng tiếp theo
         if (!waveManager.isWaveInProgress()) {
             float timeLeft = waveManager.getTimeUntilNextWave();
-            gc.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-            gc.setFill(Color.web("#a855f7")); // Màu tím
-            String nextWaveText = String.format("Sóng tiếp theo trong: %.1fs", timeLeft);
-            gc.fillText(nextWaveText, x + 20, y + 72);
+
+            double bannerX = x;
+            double bannerY = y + 55;
+            double bannerW = 230;
+            double bannerH = 32;
+
+            // Nền tối mờ che chắn nền bản đồ bên dưới
+            gc.setFill(Color.rgb(15, 23, 42, 0.9));
+            gc.fillRoundRect(bannerX, bannerY, bannerW, bannerH, 10, 10);
+
+            // Viền vàng nổi bật
+            gc.setStroke(Color.web("#f59e0b"));
+            gc.setLineWidth(1.5);
+            gc.strokeRoundRect(bannerX, bannerY, bannerW, bannerH, 10, 10);
+
+            // Căn chỉnh chữ màu vàng sáng rực rỡ
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 13));
+            gc.setFill(Color.web("#f59e0b"));
+            String nextWaveText = String.format("⏱ Quái sẽ đến sau: %.1fs", timeLeft);
+            gc.fillText(nextWaveText, bannerX + 15, bannerY + 21);
         }
     }
 }
