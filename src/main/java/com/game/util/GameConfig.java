@@ -25,8 +25,8 @@ public class GameConfig {
 
     // Tower settings
     public static final float TOWER_SIZE = 60f; // Kích thước hiển thị của tháp (tăng kích thước tháp)
-    public static final float TOWER_GUN_COST = 10f;
-    public static final float TOWER_SLOW_COST = 20f;
+    public static final float TOWER_GUN_COST = 15f;
+    public static final float TOWER_SLOW_COST = 25f;
 
     public static final float TOWER_GUN_RANGE = 150f;
     public static final float TOWER_GUN_FIRE_RATE = 1.0f; 
