@@ -27,14 +27,14 @@ public class MapModel {
      * Khởi tạo bản đồ khớp vệt đường vàng trên ảnh map.png (1280x720).
      */
     private void initializeGrid() {
-        // 1. Khởi tạo toàn bộ các ô ban đầu là EMPTY (đất trống/cỏ xanh)
+        // 1. Khởi tạo toàn bộ các ô ban đầu là PATH (không cho phép đặt tháp ở bãi cỏ/cây cối)
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
-                grid[r][c] = new Cell(r, c, CellType.EMPTY);
+                grid[r][c] = new Cell(r, c, CellType.PATH);
             }
         }
 
-        // 2. Danh sách mốc tọa độ chính xác của con đường đất vàng trên map.png
+        // 2. Danh sách mốc tọa độ chính xác của con đường đất vàng trên map2.png
         double[][] rawControlPoints = {
             {0, 300},      // Cổng xuất phát bên trái
             {120, 300},
@@ -85,7 +85,7 @@ public class MapModel {
         double[] last = rawControlPoints[rawControlPoints.length - 1];
         pathWaypoints.add(new Point2D(last[0], last[1]));
 
-        // 4. Đánh dấu các ô nằm trên vệt đường vàng thành CellType.PATH
+        // 4. Đánh dấu các ô nằm trên con đường di chuyển của quái thành CellType.PATH
         double cellSize = GameConfig.GRID_CELL_SIZE;
         for (Point2D wp : pathWaypoints) {
             int col = (int) (wp.getX() / cellSize);
@@ -111,6 +111,32 @@ public class MapModel {
 
         if (baseRow >= 0 && baseRow < rows && baseCol >= 0 && baseCol < cols) {
             grid[baseRow][baseCol].setType(CellType.BASE);
+        }
+
+        // 6. ĐẶC BIỆT: Mỗi bãi đất vàng (Yellow patch) chỉ mở ĐÚNG 1 Ô TRUNG TÂM duy nhất cho phép đặt tháp
+        int[][] yellowBuildPatches = {
+            // Cụm ô vàng 1 (Phía trên giữa)
+            {7, 15},
+            // Cụm ô vàng 2 (Phía trên bên trái)
+            {8, 5},
+            // Cụm ô vàng 3 (Phía trên bên phải)
+            {9, 26},
+            // Cụm ô vàng 4 (Giữa bên trái)
+            {12, 7},
+            // Cụm ô vàng 5 (Trung tâm bản đồ)
+            {12, 14},
+            // Cụm ô vàng 6 (Giữa bên phải)
+            {11, 23},
+            // Cụm ô vàng 7 (Phía dưới giữa)
+            {15, 13}
+        };
+
+        for (int[] cellPos : yellowBuildPatches) {
+            int r = cellPos[0];
+            int c = cellPos[1];
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+                grid[r][c].setType(CellType.EMPTY); // Đánh dấu ô vàng duy nhất này là EMPTY (cho phép đặt tháp)
+            }
         }
     }
 
