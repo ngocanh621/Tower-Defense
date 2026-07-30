@@ -261,6 +261,9 @@ public class Enemy extends Entity implements Poolable {
     public float getMaxHp() { return maxHp; }
     public int getReward() { return reward; }
     public EnemyType getType() { return type; }
+    public String getExplosionImagePath() {
+        return (type != null) ? type.getExplosionImagePath() : null;
+    }
 
     /**
      * Tẩy sạch thông số cũ để đưa đối tượng về trạng thái mới tinh trước khi tái sử dụng (Interface Poolable).
@@ -331,20 +334,22 @@ public class Enemy extends Entity implements Poolable {
     }
 
     public enum EnemyType {
-        GOBLIN(GameConfig.ENEMY_GOBLIN_HP, GameConfig.ENEMY_GOBLIN_SPEED, GameConfig.ENEMY_GOBLIN_REWARD, "/assets/quai1."),
-        ORC(GameConfig.ENEMY_ORC_HP, GameConfig.ENEMY_ORC_SPEED, GameConfig.ENEMY_ORC_REWARD, "/assets/quai2."),
-        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, "/assets/Rong");
+        GOBLIN(GameConfig.ENEMY_GOBLIN_HP, GameConfig.ENEMY_GOBLIN_SPEED, GameConfig.ENEMY_GOBLIN_REWARD, "/assets/quai1.", "/assets/explosion_quai1.png"),
+        ORC(GameConfig.ENEMY_ORC_HP, GameConfig.ENEMY_ORC_SPEED, GameConfig.ENEMY_ORC_REWARD, "/assets/quai2.", "/assets/explosion_quai2.png"),
+        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, "/assets/Rong", null);
 
         private final float hp;
         private final float speed;
         private final int reward;
         private final String spritePrefix;
+        private final String explosionImagePath;
 
-        EnemyType(float hp, float speed, int reward, String spritePrefix) {
+        EnemyType(float hp, float speed, int reward, String spritePrefix, String explosionImagePath) {
             this.hp = hp;
             this.speed = speed;
             this.reward = reward;
             this.spritePrefix = spritePrefix;
+            this.explosionImagePath = explosionImagePath;
         }
 
         public float getHp() {
@@ -361,6 +366,10 @@ public class Enemy extends Entity implements Poolable {
 
         public String getSpritePrefix() {
             return spritePrefix;
+        }
+
+        public String getExplosionImagePath() {
+            return explosionImagePath;
         }
     }
 }

@@ -13,6 +13,7 @@ import com.game.model.Tower.TowerType;
 import com.game.system.EventBus;
 import com.game.system.GameEvent;
 import com.game.util.Constants;
+import com.game.util.ExplosionEffect;
 import com.game.util.GameConfig;
 import com.game.view.HudRenderer;
 
@@ -41,6 +42,7 @@ public class GameScene {
     private final List<Enemy> enemies = new ArrayList<>();
     private final List<Tower> towers = new ArrayList<>(); // 1. Danh sách quản lý Tháp
     private final List<Projectile> projectiles = new ArrayList<>(); // Danh sách quản lý Đạn
+    private final List<ExplosionEffect> explosions = new ArrayList<>();
     private final WaveManager waveManager; // Quản lý sóng quái vật
     private final PlayerState playerState; // Quản lý máu và vàng của người chơi
     private final HudRenderer hudRenderer; // Hiển thị giao diện HUD
@@ -79,6 +81,18 @@ public class GameScene {
             if (data instanceof Enemy enemy) {
                 playerState.addGold(enemy.getReward());
                 playerState.addScore(enemy.getReward() * 10); // Thưởng điểm số dựa trên loại quái
+
+                // Kiểm tra xem quái này có ảnh hiệu ứng vỡ/nổ khi chết hay không
+                String expPath = enemy.getExplosionImagePath();
+                if (expPath != null) {
+                    explosions.add(new ExplosionEffect(
+                            enemy.getX(),
+                            enemy.getY(),
+                            enemy.getWidth(),
+                            enemy.getHeight(),
+                            expPath
+                    ));
+                }
             }
         });
 
@@ -158,6 +172,16 @@ public class GameScene {
                 projIterator.remove();
             }
         }
+
+        //4. CẬP NHẬT HIỆU ỨNG NỔ (Xóa hiệu ứng khi active = false)
+        Iterator<ExplosionEffect> expIterator = explosions.iterator();
+        while (expIterator.hasNext()) {
+            ExplosionEffect exp = expIterator.next();
+            exp.update(deltaTime);
+            if (!exp.isActive()) {
+                expIterator.remove();
+            }
+        }
     }
 
     /**
@@ -217,6 +241,9 @@ public class GameScene {
         // Step 4: Render Viên đạn
         renderProjectiles();
 
+        //STEP 4': Render hiệu ứng nổ
+        renderExplosions();
+
         // Step 5: Vẽ lưới ô cờ (Overlay)
         drawGridOverlay();
 
@@ -228,6 +255,15 @@ public class GameScene {
 
         // Step 7: Hiển thị giao diện HUD (Máu, Vàng, Wave)
         hudRenderer.render(gc, playerState, waveManager);
+    }
+
+    /**
+     * Duyệt danh sách và vẽ các hiệu ứng nổ
+     */
+    private void renderExplosions() {
+        for (ExplosionEffect exp : explosions) {
+            exp.render(gc);
+        }
     }
 
     /**
