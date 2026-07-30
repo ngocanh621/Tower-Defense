@@ -42,6 +42,13 @@
             <version>${javafx.version}</version>
         </dependency>
 
+        <!-- JavaFX Media (Âm thanh & Video) -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
         <!-- JSON parsing -->
         <dependency>
             <groupId>com.google.code.gson</groupId>

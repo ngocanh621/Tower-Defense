@@ -2,6 +2,7 @@ package com.game.core;
 
 import com.game.util.Constants;
 import com.game.util.GameConfig;
+import com.game.system.SoundManager;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -40,6 +41,9 @@ public class SceneManager {
      * Tạo giao diện menu chính với tiêu đề, high score, nút bắt đầu và thoát.
      */
     public Scene createMenuScene() {
+        // === BẬT NHẠC NỀN MENU KHỞI TẠO ===
+        SoundManager.getInstance().playBGM("/audio/mainMenuMusic.mp3");
+
         StackPane root = new StackPane();
         // 1. Nạp đường dẫn ảnh nền
         String bgPath = getClass().getResource("/assets/MainScreen.png") != null
@@ -213,12 +217,18 @@ public class SceneManager {
     }
 
     public void switchToMenuScene() {
+        // === ĐỔI SANG NHẠC MENU KHI THOÁT RA GAME ===
+        SoundManager.getInstance().playBGM("/audio/mainMenuMusic.mp3");
+
         Scene menuScene = createMenuScene();
         primaryStage.setScene(menuScene);
         this.currentGame = null;
     }
 
     public void switchToGameScene() {
+        // === ĐỔI SANG NHẠC IN-GAME KHI BẮT ĐẦU CHƠI ===
+        SoundManager.getInstance().playBGM("/audio/GamePlayMusic.mp3");
+
         Scene gameScene = createGameScene();
         primaryStage.setScene(gameScene);
     }

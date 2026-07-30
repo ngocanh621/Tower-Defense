@@ -3,6 +3,7 @@ module com.game {
     requires javafx.fxml;
     requires transitive javafx.graphics;
     requires com.google.gson;
+    requires javafx.media;
 
     exports com.game.core;
     exports com.game.model;
