@@ -66,6 +66,7 @@ public class GameScene {
     private boolean isGameOver = false;
     private boolean isNewRecord = false;
     private int finalScore = 0;
+    private int leakedInCurrentWave = 0;
 
     public GameScene(Canvas canvas, GraphicsContext gc) {
         this.canvas = canvas;
@@ -83,6 +84,10 @@ public class GameScene {
      * Đăng ký nhận sự kiện từ EventBus để cập nhật điểm/máu và lưu kỷ lục người chơi.
      */
     private void setupEventListeners() {
+        EventBus.getInstance().subscribe(GameEvent.WAVE_STARTED, data -> {
+            this.leakedInCurrentWave = 0; // Reset đếm quái lọt lưới khi đợt sóng mới bắt đầu
+        });
+
         EventBus.getInstance().subscribe(GameEvent.ENEMY_DIED, data -> {
             if (data instanceof Enemy enemy) {
                 playerState.addGold(enemy.getReward());
@@ -103,14 +108,18 @@ public class GameScene {
         });
 
         EventBus.getInstance().subscribe(GameEvent.ENEMY_REACHED_BASE, data -> {
-            if (data instanceof Enemy) {
-                playerState.takeDamage(1);
+            if (data instanceof Enemy enemy) {
+                this.leakedInCurrentWave++;
+                playerState.takeDamage(enemy.getPlayerDamage()); // Trừ máu dựa theo độ nguy hiểm từng loại quái
             }
         });
 
         EventBus.getInstance().subscribe(GameEvent.WAVE_COMPLETED, data -> {
             if (data instanceof Integer waveNum) {
-                playerState.addScore(waveNum * 100); // Thưởng điểm khi hoàn thành đợt sóng
+                // Chỉ thưởng điểm nếu hoàn thành Wave hoàn hảo (không để quái lọt lưới)
+                if (leakedInCurrentWave == 0) {
+                    playerState.addScore(waveNum * 100); // Thưởng điểm hoàn thành đợt sóng xuất sắc
+                }
             }
         });
 

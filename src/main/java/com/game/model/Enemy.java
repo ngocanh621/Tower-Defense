@@ -333,21 +333,27 @@ public class Enemy extends Entity implements Poolable {
         };
     }
 
+    public int getPlayerDamage() {
+        return (type != null) ? type.getPlayerDamage() : 1;
+    }
+
     public enum EnemyType {
-        GOBLIN(GameConfig.ENEMY_GOBLIN_HP, GameConfig.ENEMY_GOBLIN_SPEED, GameConfig.ENEMY_GOBLIN_REWARD, "/assets/quai1.", "/assets/explosion_quai1.png"),
-        ORC(GameConfig.ENEMY_ORC_HP, GameConfig.ENEMY_ORC_SPEED, GameConfig.ENEMY_ORC_REWARD, "/assets/quai2.", "/assets/explosion_quai2.png"),
-        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, "/assets/Rong", null);
+        GOBLIN(GameConfig.ENEMY_GOBLIN_HP, GameConfig.ENEMY_GOBLIN_SPEED, GameConfig.ENEMY_GOBLIN_REWARD, 1, "/assets/quai1.", "/assets/explosion_quai1.png"),
+        ORC(GameConfig.ENEMY_ORC_HP, GameConfig.ENEMY_ORC_SPEED, GameConfig.ENEMY_ORC_REWARD, 2, "/assets/quai2.", "/assets/explosion_quai2.png"),
+        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, 5, "/assets/Rong", null);
 
         private final float hp;
         private final float speed;
         private final int reward;
+        private final int playerDamage;
         private final String spritePrefix;
         private final String explosionImagePath;
 
-        EnemyType(float hp, float speed, int reward, String spritePrefix, String explosionImagePath) {
+        EnemyType(float hp, float speed, int reward, int playerDamage, String spritePrefix, String explosionImagePath) {
             this.hp = hp;
             this.speed = speed;
             this.reward = reward;
+            this.playerDamage = playerDamage;
             this.spritePrefix = spritePrefix;
             this.explosionImagePath = explosionImagePath;
         }
@@ -362,6 +368,10 @@ public class Enemy extends Entity implements Poolable {
 
         public int getReward() {
             return reward;
+        }
+
+        public int getPlayerDamage() {
+            return playerDamage;
         }
 
         public String getSpritePrefix() {
