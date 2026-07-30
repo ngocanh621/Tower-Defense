@@ -336,7 +336,7 @@ public class Enemy extends Entity implements Poolable {
     public enum EnemyType {
         GOBLIN(GameConfig.ENEMY_GOBLIN_HP, GameConfig.ENEMY_GOBLIN_SPEED, GameConfig.ENEMY_GOBLIN_REWARD, "/assets/quai1.", "/assets/explosion_quai1.png"),
         ORC(GameConfig.ENEMY_ORC_HP, GameConfig.ENEMY_ORC_SPEED, GameConfig.ENEMY_ORC_REWARD, "/assets/quai2.", "/assets/explosion_quai2.png"),
-        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, "/assets/Rong", null);
+        DRAGON(GameConfig.ENEMY_DRAGON_HP, GameConfig.ENEMY_DRAGON_SPEED, GameConfig.ENEMY_DRAGON_REWARD, "/assets/quaiVua", "/assets/explosion_quaiVua.png");
 
         private final float hp;
         private final float speed;
