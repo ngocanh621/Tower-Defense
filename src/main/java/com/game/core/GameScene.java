@@ -589,25 +589,35 @@ public class GameScene {
     }
 
     /**
-     * Vẽ Menu Popup lựa chọn mua tháp hoặc nâng cấp/bán tháp đã có
+     * Vẽ Menu Popup lựa chọn mua tháp hoặc Nâng cấp / Bán tháp (Style Gỗ Cổ Điển)
      */
-   private void renderBuildMenu() {
+    private void renderBuildMenu() {
+        if (isGameOver) return;
         if (selectedCol == -1 || selectedRow == -1) return;
 
         double cellSize = GameConfig.GRID_CELL_SIZE;
 
-        // Highlight ô cờ đang chọn (Viền Vàng)
-        gc.setStroke(Color.rgb(184, 134, 11, 0.8));
-        gc.setLineWidth(3);
+        // Highlight ô cờ đang chọn (Viền Vàng Hoàng Gia)
+        gc.setStroke(Color.web("#ffd700"));
+        gc.setLineWidth(2.5);
         gc.strokeRect(selectedCol * cellSize, selectedRow * cellSize, cellSize, cellSize);
 
-        // Kiểm tra xem tại ô cờ đang chọn có tháp sẵn hay chưa
-        Tower existingTower = towers.stream()
-            .filter(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow)
-            .findFirst().orElse(null);
+        // Tính toán vị trí Menu
+        double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
+        double menuY = selectedRow * cellSize - menuHeight - 12;
 
+        // Chống tràn màn hình
+        if (menuX < 10) menuX = 10;
+        if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
+        if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 12;
+
+        // Kiểm tra xem tại ô cờ đang chọn đã có tháp hay chưa
+        Tower existingTower = towers.stream()
+                .filter(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow)
+                .findFirst().orElse(null);
+
+        // BẬT VÒNG TRÒN BAN KÍNH TẦM BẮN NẾU ĐÃ CÓ THÁP
         if (existingTower != null) {
-            // VẼ VÒNG TRÒN BAN KÍNH TẦM BẮN (RANGE INDICATOR) MÀU XANH CYAN SÁNG
             float centerX = existingTower.getX() + existingTower.getWidth() / 2f;
             float centerY = existingTower.getY() + existingTower.getHeight() / 2f;
             float range = existingTower.getRange();
@@ -617,135 +627,106 @@ public class GameScene {
             gc.strokeOval(centerX - range, centerY - range, range * 2, range * 2);
             gc.setFill(Color.rgb(0, 220, 255, 0.12));
             gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
-
-            // VỊ TRÍ POPUP MENU QUẢN LÝ THÁP
-            double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
-            double menuY = selectedRow * cellSize - menuHeight - 10;
-
-            if (menuX < 10) menuX = 10;
-            if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
-            if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 10;
-
-            // Khung nền Menu Popup mờ kính
-            gc.setFill(Color.rgb(30, 41, 59, 0.95));
-            gc.fillRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
-
-            gc.setStroke(Color.rgb(56, 189, 248));
-            gc.setLineWidth(1.5);
-            gc.strokeRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
-
-            // Tiêu đề Menu
-            gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
-            gc.setFill(Color.rgb(224, 242, 254));
-            gc.fillText("TOWER  Lv." + existingTower.getLevel(), menuX + 22, menuY + 16);
-
-            double btn1X = menuX + 8;
-            double btn1Y = menuY + 24;
-            double btnW = 60;
-            double btnH = 38;
-
-            // NÚT 1: UPGRADE (NÂNG CẤP)
-            boolean canUpgrade = existingTower.canUpgrade();
-            int upgradeCost = existingTower.getUpgradeCost();
-            boolean canAffordUpgrade = canUpgrade && playerState.getGold() >= upgradeCost;
-
-            gc.setFill(canAffordUpgrade ? Color.rgb(16, 185, 129) : Color.rgb(71, 85, 105, 0.7));
-            gc.fillRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
-            gc.setStroke(canAffordUpgrade ? Color.rgb(52, 211, 153) : Color.GRAY);
-            gc.setLineWidth(1);
-            gc.strokeRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
-
-            gc.setFont(Font.font("Georgia", FontWeight.BOLD, 10));
-            gc.setFill(Color.WHITE);
-            gc.fillText("⬆️ UP", btn1X + 10, btn1Y + 16);
-
-            gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 9));
-            if (!canUpgrade) {
-                gc.setFill(Color.GOLD);
-                gc.fillText("MAX", btn1X + 18, btn1Y + 30);
-            } else {
-                gc.setFill(canAffordUpgrade ? Color.rgb(255, 215, 0) : Color.LIGHTGRAY);
-                gc.fillText(upgradeCost + "G", btn1X + 16, btn1Y + 30);
-            }
-
-            // NÚT 2: SELL (BÁN THÁP)
-            double btn2X = menuX + 72;
-            double btn2Y = menuY + 24;
-            int sellValue = existingTower.getSellValue();
-
-            gc.setFill(Color.rgb(225, 29, 72));
-            gc.fillRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
-            gc.setStroke(Color.rgb(251, 113, 133));
-            gc.strokeRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
-
-            gc.setFont(Font.font("Georgia", FontWeight.BOLD, 10));
-            gc.setFill(Color.WHITE);
-            gc.fillText("💰 SELL", btn2X + 8, btn2Y + 16);
-
-            gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 9));
-            gc.setFill(Color.rgb(255, 215, 0));
-            gc.fillText("+" + sellValue + "G", btn2X + 14, btn2Y + 30);
-            return;
         }
 
-        // --- MENU MUA THÁP MỚI (NẾU Ô ĐÁT TRỐNG) ---
-        // Vị trí Menu
-        double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
-        double menuY = selectedRow * cellSize - menuHeight - 10;
+        // 1. VẼ KHUNG NỀN BẢNG GỖ (WOODEN PANEL)
+        gc.setFill(Color.web("#2b1810")); // Màu gỗ đậm
+        gc.fillRoundRect(menuX, menuY, menuWidth, menuHeight, 10, 10);
 
-        if (menuX < 10) menuX = 10;
-        if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
-        if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 10;
+        // Viền kép giả kim loại vàng đồng
+        gc.setStroke(Color.web("#8b5a2b"));
+        gc.setLineWidth(3);
+        gc.strokeRoundRect(menuX, menuY, menuWidth, menuHeight, 10, 10);
 
-        // Khung nền Menu Popup mờ kính
-        gc.setFill(Color.rgb(62, 39, 25, 0.95));
-        gc.fillRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
+        gc.setStroke(Color.web("#d4af37")); // Viền sáng bên trong
+        gc.setLineWidth(1);
+        gc.strokeRoundRect(menuX + 2, menuY + 2, menuWidth - 4, menuHeight - 4, 8, 8);
 
-        gc.setStroke(Color.rgb(139, 90, 43));
-        gc.setLineWidth(1.5);
-        gc.strokeRoundRect(menuX, menuY, menuWidth, menuHeight, 6, 6);
+        // Căn giữa văn bản cho tiêu đề và các nút
+        gc.setTextAlign(TextAlignment.CENTER);
 
-        // Tiêu đề Menu
-        gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
-        gc.setFill(Color.rgb(255, 248, 220));
-        gc.fillText("SELECT TOWER", menuX + 20, menuY + 16);
-
-        // Nút 1: GUN TOWER (100G)
         double btn1X = menuX + 8;
-        double btn1Y = menuY + 24;
+        double btn1Y = menuY + 25;
+        double btn2X = menuX + 72;
+        double btn2Y = menuY + 25;
         double btnW = 60;
         double btnH = 38;
 
-        boolean canAffordGun = playerState.getGold() >= TowerType.GUN.getCost();
-        gc.setFill(canAffordGun ? Color.rgb(160, 82, 45) : Color.rgb(80, 80, 80, 0.7));
-        gc.fillRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
-        gc.setStroke(canAffordGun ? Color.rgb(218, 165, 32) : Color.GRAY);
-        gc.setLineWidth(1);
-        gc.strokeRoundRect(btn1X, btn1Y, btnW, btnH, 5, 5);
+        if (existingTower == null) {
+            // === TRƯỜNG HỢP 1: CHỌN MUA THÁP MỚI ===
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+            gc.setFill(Color.web("#fff8dc"));
+            gc.fillText("SELECT TOWER", menuX + menuWidth / 2, menuY + 18);
 
-        gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
-        gc.setFill(Color.rgb(255, 248, 220));
-        gc.fillText("🔫 GUN", btn1X + 8, btn1Y + 16);
-        gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 10));
-        gc.setFill(canAffordGun ? Color.rgb(255, 215, 0) : Color.LIGHTGRAY);
-        gc.fillText((int)TowerType.GUN.getCost() + "G", btn1X + 16, btn1Y + 30);
+            // --- NÚT 1: GUN TOWER ---
+            boolean canAffordGun = playerState.getGold() >= TowerType.GUN.getCost();
+            drawWoodenButton(btn1X, btn1Y, btnW, btnH, "⚡ GUN", (int) TowerType.GUN.getCost() + "G", canAffordGun, "#8b4513");
 
-        // Nút 2: SLOW TOWER
-        double btn2X = menuX + 72;
-        double btn2Y = menuY + 24;
+            // --- NÚT 2: SLOW TOWER ---
+            boolean canAffordSlow = playerState.getGold() >= TowerType.SLOW.getCost();
+            drawWoodenButton(btn2X, btn2Y, btnW, btnH, "❄ SLOW", (int) TowerType.SLOW.getCost() + "G", canAffordSlow, "#1e3d59");
 
-        boolean canAffordSlow = playerState.getGold() >= TowerType.SLOW.getCost();
-        gc.setFill(canAffordSlow ? Color.rgb(25, 25, 112) : Color.rgb(80, 80, 80, 0.7));
-        gc.fillRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
-        gc.setStroke(canAffordSlow ? Color.rgb(100, 149, 237) : Color.GRAY);
-        gc.strokeRoundRect(btn2X, btn2Y, btnW, btnH, 5, 5);
+        } else {
+            // === TRƯỜNG HỢP 2: NÂNG CẤP HOẶC BÁN THÁP ===
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 12));
+            gc.setFill(Color.web("#ffd700"));
+            gc.fillText("TOWER Lv." + existingTower.getLevel(), menuX + menuWidth / 2, menuY + 18);
 
-        gc.setFont(Font.font("Georgia", FontWeight.BOLD, 11));
-        gc.setFill(Color.rgb(255, 248, 220));
-        gc.fillText("❄️ SLOW", btn2X + 5, btn2Y + 16);
-        gc.setFont(Font.font("Georgia", FontWeight.NORMAL, 10));
-        gc.setFill(canAffordSlow ? Color.rgb(255, 215, 0) : Color.LIGHTGRAY);
-        gc.fillText((int)TowerType.SLOW.getCost() + "G", btn2X + 16, btn2Y + 30);
+            boolean canUpgrade = existingTower.canUpgrade();
+            int upgradeCost = existingTower.getUpgradeCost();
+            int sellRefund = existingTower.getSellValue();
+            boolean canAffordUpgrade = canUpgrade && playerState.getGold() >= upgradeCost;
+
+            // --- NÚT 1: UPGRADE ---
+            String costLabel = canUpgrade ? upgradeCost + "G" : "MAX";
+            drawWoodenButton(btn1X, btn1Y, btnW, btnH, "▲ UP", costLabel, canAffordUpgrade, "#2e5a27");
+
+            // --- NÚT 2: SELL ---
+            drawWoodenButton(btn2X, btn2Y, btnW, btnH, "💰 SELL", "+" + sellRefund + "G", true, "#8b0000");
+        }
+
+        // Khôi phục thuộc tính căn lề mặc định
+        gc.setTextAlign(TextAlignment.LEFT);
+    }
+
+    /**
+     * Hàm phụ trợ vẽ Nút Bấm phong cách Gỗ 3D
+     */
+    private void drawWoodenButton(double x, double y, double w, double h, String title, String cost, boolean enabled, String baseColorHex) {
+        if (enabled) {
+            // Nền nút bấm
+            gc.setFill(Color.web(baseColorHex));
+            gc.fillRoundRect(x, y, w, h, 6, 6);
+
+            // Viền nổi 3D sáng góc trên/trái
+            gc.setStroke(Color.web("#ffffff", 0.3));
+            gc.setLineWidth(1.5);
+            gc.strokeRoundRect(x, y, w, h, 6, 6);
+
+            gc.setFill(Color.web("#fff8dc"));
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 11));
+            gc.fillText(title, x + w / 2, y + 16);
+
+            gc.setFill(Color.web("#ffd700")); // Vàng ánh kim cho chi phí Gold
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
+            gc.fillText(cost, x + w / 2, y + 30);
+        } else {
+            // Nút bị vô hiệu hóa (Không đủ tiền hoặc đã max)
+            gc.setFill(Color.web("#3a3a3a", 0.8));
+            gc.fillRoundRect(x, y, w, h, 6, 6);
+
+            gc.setStroke(Color.web("#555555"));
+            gc.setLineWidth(1);
+            gc.strokeRoundRect(x, y, w, h, 6, 6);
+
+            gc.setFill(Color.web("#888888"));
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 11));
+            gc.fillText(title, x + w / 2, y + 16);
+
+            gc.setFill(Color.web("#aa5555")); // Màu đỏ nhạt báo thiếu vàng
+            gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
+            gc.fillText(cost, x + w / 2, y + 30);
+        }
     }
 
     /**
