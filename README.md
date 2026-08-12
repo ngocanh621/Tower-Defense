@@ -2,53 +2,56 @@
 
 ## Thành Viên
 
-Nhóm [6] - Lớp [INT2215_81]
+Nhóm 6 - Lớp INT2215_81
+1. Nguyễn Ngọc Ánh 24020034 
+2. Phạm Thị Trà My 24020242 
+Giảng viên hướng dẫn : Thầy Đặng Đức Hạnh<br>Thầy La Trịnh Hoàng Việt<br>Thầy Phạm Bảo Phúc<br>Thầy Nguyễn Đức Quyền | - |
 
-| Thành viên 1 | Nguyễn Ngọc Ánh | 24020034 |
-| Thành viên 2 | Phạm Thị Trà My | 24020242 |
-| Giảng viên hướng dẫn | Thầy Đặng Đức Hạnh<br>Thầy La Trịnh Hoàng Việt<br>Thầy Phạm Bảo Phúc<br>Thầy Nguyễn Đức Quyền | - |
-
-- Học kỳ: HK1 - 2025-2026
+- Học kỳ phụ - 2025-2026
 
 ---
 
 ## Giới Thiệu (Description)
 
 Stone Guardians là một dự án game Tower Defense 2D hiện đại được phát triển hoàn toàn bằng Java và JavaFX. Đây là đồ án được thực hiện nhằm mục đích làm bài tập lớn cuối kỳ cho môn học Lập trình nâng cao.
+
 ---
 
 ## Các Tính Năng Chính (Key Features)
 
-- Phát triển bằng Java 17+ với giao diện đồ họa JavaFX 21.
+- Phát triển bằng Java 17 với giao diện đồ họa JavaFX 21.
 - Vận hành mượt mà với Game Loop 60 FPS, tính toán deltaTime chuẩn xác.
 - Ứng dụng kiến trúc sạch: MVC, Event-Driven Architecture, và Object Pooling.
-- Bản đồ độ phân giải cao (1280x720) với hệ thống lưới ô cờ (Grid) và thuật toán di chuyển theo định tuyến (Waypoints).
-- Tích hợp hệ thống âm thanh, hiệu ứng hạt và giao diện HUD trực quan.
-- Hỗ trợ hệ thống cấu hình linh hoạt (Game Config) qua JSON và lưu trữ Kỷ lục (Best Score) cục bộ.
+- Bản đồ độ phân giải cao (1280x720) với hệ thống lưới ô cờ (Grid 40x40px) và di chuyển theo mốc định tuyến (Waypoints).
+- Tích hợp hệ thống âm thanh, hiệu ứng cháy nổ và giao diện HUD trực quan.
+- Khởi tạo tài nguyên người chơi: 20 Máu (HP) và 100 Vàng (Gold) ban đầu.
+- Lưu trữ Kỷ lục (Best Score) cục bộ tại tệp highscore.txt.
 
 ---
 
 ## Cơ Chế Trò Chơi (Game Mechanics)
 
 - Quản lý tài nguyên (Vàng) để tính toán chiến thuật mua và đặt tháp.
-- Nâng cấp tháp để gia tăng sức mạnh hoặc bán tháp để thu hồi vốn.
+- Nâng cấp tháp (tối đa cấp 3) để gia tăng sức mạnh hoặc bán tháp để thu hồi lại vàng.
 - Chế độ chơi vô tận (Endless Mode): Không có màn thắng cố định, các đợt sinh quái (Waves) xuất hiện liên tục và tăng dần độ khó tự động theo thời gian.
-- Bảo vệ Căn cứ (Base): Mỗi quái vật lọt qua lưới phòng thủ sẽ trừ đi 1 Máu (HP) của người chơi. Trò chơi kéo dài cho đến khi HP giảm về 0.
+- Bảo vệ Căn cứ (Base): Mỗi quái vật lọt qua lưới phòng thủ sẽ trừ Máu (HP) của người chơi tùy thuộc loại quái. Trò chơi kết thúc (Game Over) khi HP giảm về 0.
 
 ---
 
 ## Sơ Đồ & Kiến Trúc Thiết Kế (UML & Design Patterns)
 
 ### 1. Kiến Trúc Hướng Sự Kiện (Event-Driven Architecture)
-- Sử dụng tại: EventBus, Quản lý sát thương, Cập nhật UI.
-- Mục đích: Giúp các module (GameScene, WaveManager, HUD) giao tiếp với nhau mà không bị phụ thuộc trực tiếp (Decoupling). Ví dụ: Khi quái chết, hệ thống sẽ phát tín hiệu cộng tiền, phát âm thanh mà không cần gọi hàm chéo nhau.
+- Sử dụng tại: Class EventBus, quản lý sự kiện WAVE_STARTED, ENEMY_DIED, ENEMY_REACHED_BASE, WAVE_COMPLETED.
+- Mục đích: Giúp các module (GameScene, WaveManager, HudRenderer) giao tiếp với nhau mà không bị phụ thuộc trực tiếp (Decoupling). Khi quái chết, hệ thống tự phát sự kiện cộng vàng, cộng điểm và tạo hiệu ứng nổ.
 
 ### 2. Object Pool Pattern (Tối ưu Bộ nhớ)
-- Sử dụng tại: Projectile (Đạn), Enemy (Quái vật).
-- Mục đích: Tái sử dụng liên tục các thực thể xuất hiện nhiều trong game thay vì khởi tạo (new) và xóa chúng liên tục, giúp giảm tải tối đa cho bộ thu gom rác (Garbage Collector), đảm bảo game không bị giật lag.
+- Sử dụng tại: Projectile (Đạn) và Enemy (Quái vật) cài đặt giao diện Poolable.
+- Mục đích: Tái sử dụng liên tục các thực thể xuất hiện nhiều trong game thay vì khởi tạo (new) và xóa chúng liên tục, giúp giảm tải tối đa cho bộ thu gom rác (Garbage Collector), đảm bảo game duy trì 60 FPS không bị giật lag.
 
 ### 3. Mô Hình MVC (Model-View-Controller)
-- Mục đích: Tách biệt rõ ràng phần xử lý dữ liệu (MapModel, Entity), phần hiển thị giao diện (GameScene, HudRenderer) và phần điều khiển logic (WaveManager, PlayerState).
+- Model: Tách biệt xử lý dữ liệu (MapModel, Entity, Tower, Enemy, Projectile).
+- View: Quản lý hiển thị đồ họa trực tiếp trên Canvas và HUD (GameScene, HudRenderer).
+- Controller: Điều khiển trạng thái người chơi và logic đợt quái (WaveManager, PlayerState).
 
 ---
 
@@ -89,34 +92,34 @@ Stone Guardians là một dự án game Tower Defense 2D hiện đại được 
 | Thao tác chuột | Hành động |
 | --- | --- |
 | Hover (Di chuột) | Hiển thị viền tô sáng báo hiệu ô đất (Xanh: Hợp lệ / Đỏ: Không thể đặt). |
-| Left Click vào ô đất trống | Mở Menu Chọn Tháp (Mua tháp mới). |
+| Left Click vào ô đất trống | Mở Menu Chọn Tháp (Mua Gun Tower hoặc Slow Tower). |
 | Left Click vào tháp đã xây | Mở Menu Nâng cấp / Bán tháp hiện tại. |
 
 ### Cách chơi (How to play)
 
 - Khởi động: Chọn "Start Game" từ màn hình chính.
-- Xây dựng: Tìm các bãi đất vàng chiến thuật có viền xanh lá, click chuột để mua tháp.
-- Phòng thủ: Tháp sẽ tự động dò tìm mục tiêu và xả đạn. Tiêu diệt quái vật để kiếm thêm Vàng (Gold).
-- Kết thúc trò chơi (Game Over): Trò chơi kết thúc khi HP của người chơi giảm về 0 do quái vật lọt qua tuyến phòng thủ. Mục tiêu là sinh tồn qua nhiều đợt quái (Waves) nhất có thể để đạt số điểm kỷ lục.
+- Xây dựng: Tìm các bãi đất chiến thuật có viền xanh lá, click chuột để mua tháp.
+- Phòng thủ: Tháp sẽ tự động dò tìm mục tiêu và xả đạn trong tầm bắn. Tiêu diệt quái vật để kiếm thêm Vàng (Gold) và Điểm (Score).
+- Kết thúc trò chơi (Game Over): Trò chơi kết thúc khi HP của người chơi giảm về 0. Mục tiêu là sinh tồn qua nhiều đợt quái (Waves) nhất có thể để đạt điểm số kỷ lục.
 
 ---
 
 ## Hệ Thống Tháp Phòng Thủ (Towers)
 
-| Tên Tháp | Mức Giá | Hiệu Ứng |
-| --- | --- | --- |
-| Gun Tower | 100G | Tháp súng máy: Tốc độ bắn cực nhanh, lượng sát thương ổn định. Rất tốt để dọn dẹp các mục tiêu lẻ di chuyển nhanh. |
-| Slow Tower | 150G | Tháp băng: Tốc độ bắn chậm nhưng có tầm quét rộng. Khi đánh trúng sẽ làm chậm tốc độ di chuyển của quái vật trong một khoảng thời gian. |
+| Tên Tháp | Mức Giá | Tầm Bắn | Tốc Độ Bắn | Hiệu Ứng |
+| --- | --- | --- | --- | --- |
+| Gun Tower | 15G | 150px | 1.0 phát/giây | Tháp súng máy: Tốc độ bắn nhanh, giá thành rẻ. Rất hiệu quả ở giai đoạn đầu game. |
+| Slow Tower | 25G | 200px | 0.5 phát/giây | Tháp băng: Tầm quét rộng, tự động làm chậm tốc độ di chuyển của quái vật bị trúng đạn. |
 
 ---
 
 ## Kẻ Thù (Enemies)
 
-| Tên Quái | Đặc Điểm |
-| --- | --- |
-| Goblin | Đội quân nhí nhố với tốc độ di chuyển cực nhanh nhưng lượng máu thấp. Rất dễ bị tiêu diệt bởi Gun Tower. |
-| Orc | Tộc Orc da xanh với thân hình đồ sộ. Di chuyển chậm chạp nhưng có lượng Máu (HP) khổng lồ, cần nhiều hỏa lực để hạ gục. |
-| Dragon | Sinh vật thống trị bầu trời (Boss) sở hữu tốc độ di chuyển và lượng máu (HP) vượt trội. |
+| Tên Quái | Máu (HP) | Tốc Độ | Phần Thưởng | Đặc Điểm |
+| --- | --- | --- | --- | --- |
+| Goblin | 50 HP | 120 px/s | 10 Gold | Tốc độ di chuyển cực nhanh nhưng máu thấp. |
+| Orc | 200 HP | 60 px/s | 25 Gold | Tốc độ di chuyển chậm nhưng có lượng máu khổng lồ. |
+| Dragon | 500 HP | 40 px/s | 60 Gold | Sinh vật Boss có lượng máu và kích thước lớn nhất. |
 
 ---
 
@@ -127,18 +130,16 @@ Stone Guardians là một dự án game Tower Defense 2D hiện đại được 
 - Menu Mua / Bán Tháp
 - Hệ thống Wave & Kẻ thù
 
-*(Bạn có thể chèn các link ảnh thực tế của dự án trên GitHub vào đây)*
-
 ---
 
 ## Hướng Phát Triển Tương Lai (Future Improvements)
 
 - Mở rộng Gameplay:
-  - Thêm chế độ Endless Mode (Sinh tồn vô tận).
   - Tích hợp thêm nhiều loại Tháp (Tháp Lửa, Tháp Pháo) và các bản đồ mới.
+  - Thêm hiệu ứng âm thanh và hoạt ảnh kỹ năng đặc biệt.
 - Nâng cấp Hệ thống:
   - Hoàn thiện thuật toán tìm đường (A* Pathfinding) thay vì dùng Waypoint cố định.
-  - Lưu trữ tiến trình chơi (Save/Load game state) lên Database.
+  - Lưu trữ tiến trình chơi (Save/Load game state).
 
 ---
 
@@ -146,10 +147,11 @@ Stone Guardians là một dự án game Tower Defense 2D hiện đại được 
 
 | Công Nghệ | Phiên Bản | Vai Trò |
 | --- | --- | --- |
-| Java | 17+ | Ngôn ngữ lập trình cốt lõi |
-| JavaFX | 21 | Framework đồ họa & UI |
+| Java | 17 | Ngôn ngữ lập trình cốt lõi |
+| JavaFX | 21.0.2 | Framework đồ họa & UI |
 | Maven | 3.8+ | Quản lý Package & Build project |
-| Gson | 2.10.1 | Phân tích cú pháp (Parse) Config JSON |
+| Gson | 2.10.1 | Phân tích dữ liệu JSON |
+| JUnit | 5.9.2 | Kiểm thử đơn vị (Unit Testing) |
 
 ---
 
