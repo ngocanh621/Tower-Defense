@@ -1,13 +1,19 @@
 # Stone Guardians: Tower Defense - Advanced Programming Project
 
-## Thành Viên
+## Thành Viên & Giảng Viên Hướng Dẫn
 
-Nhóm 6 - Lớp INT2215_81
-1. Nguyễn Ngọc Ánh 24020034 
-2. Phạm Thị Trà My 24020242 
-Giảng viên hướng dẫn : Thầy Đặng Đức Hạnh<br>Thầy La Trịnh Hoàng Việt<br>Thầy Phạm Bảo Phúc<br>Thầy Nguyễn Đức Quyền | - |
+- **Nhóm:** 6 | **Lớp:** INT2215_81
+- **Học kỳ:** Học kỳ phụ (2025-2026)
 
-- Học kỳ phụ - 2025-2026
+### Thành viên:
+1. Nguyễn Ngọc Ánh - MSSV: 24020034
+2. Phạm Thị Trà My - MSSV: 24020242
+
+### Giảng viên hướng dẫn:
+- Thầy Đặng Đức Hạnh
+- Thầy La Trịnh Hoàng Việt
+- Thầy Phạm Bảo Phúc
+- Thầy Nguyễn Đức Quyền
 
 ---
 
