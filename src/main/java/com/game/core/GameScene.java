@@ -41,9 +41,9 @@ public class GameScene {
     private final GraphicsContext gc;
     private final MapModel mapModel;
     
-    private final List<Enemy> enemies = new ArrayList<>();
-    private final List<Tower> towers = new ArrayList<>(); // 1. Danh sách quản lý Tháp
-    private final List<Projectile> projectiles = new ArrayList<>(); // Danh sách quản lý Đạn
+    private final List<Enemy> enemies = new ArrayList<>(); // Quan ly enemy
+    private final List<Tower> towers = new ArrayList<>(); // Quan ly tower
+    private final List<Projectile> projectiles = new ArrayList<>(); // Quản lý Đạn
     private final List<ExplosionEffect> explosions = new ArrayList<>();
     private final WaveManager waveManager; // Quản lý sóng quái vật
     private final PlayerState playerState; // Quản lý máu và vàng của người chơi
@@ -400,15 +400,7 @@ public class GameScene {
     }
 
     private void drawGridOverlay() {
-        double cellSize = GameConfig.GRID_CELL_SIZE;
-        gc.setStroke(Color.rgb(255, 255, 255, 0.15));
-        gc.setLineWidth(0.5);
-
-        for (int r = 0; r < mapModel.getRows(); r++) {
-            for (int c = 0; c < mapModel.getCols(); c++) {
-                gc.strokeRect(c * cellSize, r * cellSize, cellSize, cellSize);
-            }
-        }
+        // Tắt hiển thị các đường lưới ô cờ để bản đồ đẹp và mượt mà hơn
     }
 
     private void drawMapFallback() {

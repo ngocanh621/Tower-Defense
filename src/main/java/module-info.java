@@ -7,7 +7,6 @@ module com.game {
 
     exports com.game.core;
     exports com.game.model;
-   //exports com.game.view;
     exports com.game.controller;
     exports com.game.system;
     exports com.game.map;

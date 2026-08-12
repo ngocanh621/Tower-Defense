@@ -113,12 +113,22 @@ public class WaveManager {
         if (!currentSpawnQueue.isEmpty()) {
             spawnTimer -= deltaTime;
             if (spawnTimer <= 0) {
-                spawnTimer = spawnInterval;
                 EnemyType enemyType = currentSpawnQueue.poll();
                 if (enemyType != null) {
                     Enemy enemy = new Enemy();
                     enemy.initialize(enemyType, mapModel);
                     activeEnemies.add(enemy);
+
+                    // Giãn khoảng cách thời gian xuất hiện tùy thuộc từng loại quái (đặc biệt là Boss Dragon)
+                    float interval = spawnInterval;
+                    if (enemyType == EnemyType.DRAGON) {
+                        interval = 3.0f; // Giãn 3.0 giây cho Boss Dragon để tránh đè hình ảnh
+                    } else if (enemyType == EnemyType.ORC) {
+                        interval = 1.8f; // Giãn 1.8 giây cho Orc
+                    } else {
+                        interval = 1.0f; // Giãn 1.0 giây cho Goblin
+                    }
+                    spawnTimer = interval;
                 }
             }
         } else {
