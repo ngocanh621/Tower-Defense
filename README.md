@@ -129,15 +129,6 @@ Stone Guardians là một dự án game Tower Defense 2D hiện đại được 
 
 ---
 
-## Hình Ảnh Demo (Screenshots)
-
-- Màn Hình Chính (Main Menu)
-- Bố Trí Phòng Thủ (Gameplay)
-- Menu Mua / Bán Tháp
-- Hệ thống Wave & Kẻ thù
-
----
-
 ## Hướng Phát Triển Tương Lai (Future Improvements)
 
 - Mở rộng Gameplay:
@@ -161,4 +152,4 @@ Stone Guardians là một dự án game Tower Defense 2D hiện đại được 
 
 ---
 
-Cập nhật lần cuối: 12/08/2026
+Cập nhật lần cuối: 15/08/2026
