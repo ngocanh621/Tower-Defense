@@ -92,7 +92,7 @@ public class SceneManager {
 
         // 5. Các nút bấm
         Button startBtn = createStyledButton("▶  START GAME");
-        startBtn.setOnAction(e -> switchToGameScene());
+        startBtn.setOnAction(e -> switchToIntroScene());
 
         Button quitBtn = createStyledButton("❌  QUIT GAME");
         quitBtn.setOnAction(e -> System.exit(0));
@@ -107,7 +107,7 @@ public class SceneManager {
         Scene scene = new Scene(root, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
-                case SPACE -> switchToGameScene();
+                case SPACE -> switchToIntroScene();
                 case ESCAPE -> System.exit(0);
                 default -> {}
             }
@@ -183,6 +183,11 @@ public class SceneManager {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void switchToIntroScene() {
+        IntroScene introScene = new IntroScene(this);
+        primaryStage.setScene(introScene.getScene());
     }
 
     /**
