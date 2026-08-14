@@ -41,25 +41,25 @@ public class GameScene {
     private final GraphicsContext gc;
     private final MapModel mapModel;
     
-    private final List<Enemy> enemies = new ArrayList<>(); // Quan ly enemy
-    private final List<Tower> towers = new ArrayList<>(); // Quan ly tower
-    private final List<Projectile> projectiles = new ArrayList<>(); // Quản lý Đạn
+    private final List<Enemy> enemies = new ArrayList<>(); // Quản lý enemy
+    private final List<Tower> towers = new ArrayList<>(); // Quản lý tower
+    private final List<Projectile> projectiles = new ArrayList<>(); // Quản lý đạn
     private final List<ExplosionEffect> explosions = new ArrayList<>();
-    private final WaveManager waveManager; // Quản lý sóng quái vật
-    private final PlayerState playerState; // Quản lý máu và vàng của người chơi
+    private final WaveManager waveManager; // Quản lý sóng quái 
+    private final PlayerState playerState; // Quản lý máu và vàng 
     private final HudRenderer hudRenderer; // Hiển thị giao diện HUD
 
     private Image mapImage;
 
-    // Thêm hiệu ứng hover để hiện vị trí đặt được tháp
-    private int hoverCol = -1; // -1 nghĩa là chuột đang ở ngoài Canvas
+    // thêm hiệu ứng hover để hiện vị trí đặt được tháp
+    private int hoverCol = -1; // -1 nghĩa là chuột đang ở ngoài
     private int hoverRow = -1;
 
-    // Vị trí ô đang mở Menu xây dựng tháp (-1 nếu chưa mở)
+    // vị trí ô đang mở menu xây dựng tháp (-1 nếu chưa mở)
     private int selectedCol = -1;
     private int selectedRow = -1;
 
-    // Kích thước menu chọn tháp (Popup)
+    // kích thước menu chọn tháp
     private final double menuWidth = 140;
     private final double menuHeight = 70;
 
@@ -81,26 +81,27 @@ public class GameScene {
     }
 
     /**
-     * Đăng ký nhận sự kiện từ EventBus để cập nhật điểm/máu và lưu kỷ lục người chơi.
+     * đăng ký nhận sự kiện từ EventBus để cập nhật điểm/máu và lưu kỷ lục người chơi
      */
     private void setupEventListeners() {
         EventBus.getInstance().subscribe(GameEvent.WAVE_STARTED, data -> {
-            this.leakedInCurrentWave = 0; // Reset đếm quái lọt lưới khi đợt sóng mới bắt đầu
+            this.leakedInCurrentWave = 0; // reset đếm quái lọt lưới khi đợt sóng mới bắt đầu
         });
 
         EventBus.getInstance().subscribe(GameEvent.ENEMY_DIED, data -> {
             if (data instanceof Enemy enemy) {
                 playerState.addGold(enemy.getReward());
-                playerState.addScore(enemy.getReward() * 10); // Thưởng điểm số dựa trên loại quái
+                playerState.addScore(enemy.getReward() * 10); // thưởng điểm số dựa trên loại quái
+                SceneManager.saveHighScore(playerState.getScore()); // tự động lưu kỷ lục ngay khi tăng điểm
 
-                // Phát âm thanh theo tên loại quái bằng switch-case đơn giản
-                switch (enemy.getType()) { // Hoặc enemy.getEnemyType()
+                // phát âm thanh theo từng loại quái
+                switch (enemy.getType()) { 
                     case GOBLIN -> SoundManager.getInstance().playSFX("/audio/quai1_Explode.mp3");
                     case ORC -> SoundManager.getInstance().playSFX("/audio/quai2_Explode.mp3");
                     case DRAGON -> SoundManager.getInstance().playSFX("/audio/boss_Explode.mp3");
                 }
 
-                // Kiểm tra xem quái này có ảnh hiệu ứng vỡ/nổ khi chết hay không
+                // kiểm tra quái có ảnh nổ k
                 String expPath = enemy.getExplosionImagePath();
                 if (expPath != null) {
                     explosions.add(new ExplosionEffect(
@@ -117,21 +118,22 @@ public class GameScene {
         EventBus.getInstance().subscribe(GameEvent.ENEMY_REACHED_BASE, data -> {
             if (data instanceof Enemy enemy) {
                 this.leakedInCurrentWave++;
-                playerState.takeDamage(enemy.getPlayerDamage()); // Trừ máu dựa theo độ nguy hiểm từng loại quái
+                playerState.takeDamage(enemy.getPlayerDamage()); //trừ máu tùy theo quái
             }
         });
 
         EventBus.getInstance().subscribe(GameEvent.WAVE_COMPLETED, data -> {
             if (data instanceof Integer waveNum) {
-                // Chỉ thưởng điểm nếu hoàn thành Wave hoàn hảo (không để quái lọt lưới)
+                // thưởng điểm nếu hoàn thành wave
                 if (leakedInCurrentWave == 0) {
-                    playerState.addScore(waveNum * 100); // Thưởng điểm hoàn thành đợt sóng xuất sắc
+                    playerState.addScore(waveNum * 100); // thưởng điểm hoàn thành đợt sóng xuất sắc
+                    SceneManager.saveHighScore(playerState.getScore());
                 }
             }
         });
 
         EventBus.getInstance().subscribe(GameEvent.GAME_OVER, data -> {
-            // Tự động lưu Kỷ lục Best Score khi người chơi bị thua
+            // tự động lưu bestscore
             SceneManager.saveHighScore(playerState.getScore());
         });
     }
@@ -149,7 +151,6 @@ public class GameScene {
                     }
                 }
             } catch (Exception e) {
-                // Bỏ qua lỗi load ảnh
             }
         }
 
@@ -157,21 +158,20 @@ public class GameScene {
     }
 
     public void update(double deltaTime) {
-        // === KHÔNG CẬP NHẬT TRẠNG THÁI GAME KHI ĐÃ GAME OVER ===
         if (isGameOver) {
             return;
         }
 
-        // === KIỂM TRA ĐIỀU KIỆN THUA (HẾT MẠNG) ===
+        // Kiểm tra người chơi chết ch
         if (playerState.getHealth() <= 0) {
             triggerGameOver();
             return;
         }
 
-        // Cập nhật WaveManager để sinh quái vật theo sóng
+        // cập nhật WaveManager để sinh quái theo đợt
         waveManager.update(deltaTime, mapModel, enemies);
 
-        // Cập nhật quái vật (xóa quái khi active = false)
+        // cập nhật quái vật (xóa quái khi active = false)
         Iterator<Enemy> iterator = enemies.iterator();
         while (iterator.hasNext()) {
             Enemy enemy = iterator.next();
@@ -181,7 +181,7 @@ public class GameScene {
             }
         }
 
-        // 2. Cập nhật cooldown / nạp đạn cho tất cả các tháp và bắn đạn
+        // cập nhật nạp đạn và bắn
         for (Tower tower : towers) {
             tower.update(deltaTime);
             if (tower.canFire()) {
@@ -197,7 +197,7 @@ public class GameScene {
             }
         }
 
-        // 3. Cập nhật đạn (xóa đạn khi active = false)
+        // cập nhật đạn (xóa đạn khi active = false)
         Iterator<Projectile> projIterator = projectiles.iterator();
         while (projIterator.hasNext()) {
             Projectile projectile = projIterator.next();
@@ -207,7 +207,7 @@ public class GameScene {
             }
         }
 
-        //4. CẬP NHẬT HIỆU ỨNG NỔ (Xóa hiệu ứng khi active = false)
+        // cập nhật hiệu ứng nổ (xóa hiệu ứng khi active = false)
         Iterator<ExplosionEffect> expIterator = explosions.iterator();
         while (expIterator.hasNext()) {
             ExplosionEffect exp = expIterator.next();
@@ -219,7 +219,7 @@ public class GameScene {
     }
 
     /**
-     * Kích hoạt trạng thái Game Over, tính điểm và lưu kỷ lục.
+     * kích hoạt gameover
      */
     private void triggerGameOver() {
         this.isGameOver = true;
@@ -228,19 +228,19 @@ public class GameScene {
         int currentBest = SceneManager.loadHighScore();
         if (finalScore > currentBest) {
             this.isNewRecord = true;
-            SceneManager.saveHighScore(finalScore); // Lưu kỷ lục mới
+            SceneManager.saveHighScore(finalScore); // lưu kỷ lục mới
         }
 
-        // Dừng nhạc nền gameplay
+        // dừng nhạc nền gameplay
         SoundManager.getInstance().stopBGM();
         EventBus.getInstance().publish(GameEvent.GAME_OVER, finalScore);
     }
 
     /**
-     * Vẽ hiệu ứng tô sáng (Highlight) ô cờ đang được con trỏ chuột hover.
+     * vẽ hiệu ứng tô sáng ô cờ đang được con trỏ chuột hover
      */
     private void renderTileHover() {
-        // Kiểm tra vị trí ô hợp lệ trong phạm vi ma trận bản đồ
+        // kiểm tra vị trí ô có hợp lệ k
         if (hoverRow < 0 || hoverRow >= mapModel.getRows() ||
                 hoverCol < 0 || hoverCol >= mapModel.getCols()) {
             return;
@@ -256,7 +256,7 @@ public class GameScene {
         boolean canPlace = (cell != null && cell.canPlaceTower());
 
         if (canPlace) {
-            // ĐẶT ĐƯỢC: Tô màu xanh lá trong suốt + viền xanh sáng
+            // đặt được : xanh
             gc.setFill(Color.rgb(0, 255, 0, 0.25));
             gc.fillRect(x, y, cellSize, cellSize);
 
@@ -264,7 +264,7 @@ public class GameScene {
             gc.setLineWidth(2);
             gc.strokeRect(x + 1, y + 1, cellSize - 2, cellSize - 2);
         } else {
-            // KHÔNG ĐẶT ĐƯỢC: Tô màu đỏ trong suốt + viền đỏ
+            // không đặt được : đỏ
             gc.setFill(Color.rgb(255, 0, 0, 0.25));
             gc.fillRect(x, y, cellSize, cellSize);
 
@@ -279,41 +279,25 @@ public class GameScene {
             gc.drawImage(mapImage, 0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
         }
 
-        // Step 2: Render các Tháp đã đặt
         renderTowers();
-
-        // Step 3: Render Quái vật
         renderEnemies();
-
-        // Step 4: Render Viên đạn
         renderProjectiles();
-
-        //STEP 4': Render hiệu ứng nổ
         renderExplosions();
-
-
-        // Step 5': Hiển thị hiệu ứng hover tại vị trí chuột
         renderTileHover();
-
-        // Step 6: Hiển thị Menu chọn tháp nếu đang chọn ô
         renderBuildMenu();
-
-        // Step 7: Hiển thị giao diện HUD (Máu, Vàng, Wave)
         hudRenderer.render(gc, playerState, waveManager);
-
-        // Step 8: Vẽ bảng thông báo GAME OVER đè lên trên nếu thua
         if (isGameOver) {
             renderGameOverOverlay();
         }
     }
 
     /**
-     * Vẽ bảng pop-up Game Over chuyên nghiệp
+     * Vẽ bảng pop-up Game Over
      */
     private void renderGameOverOverlay() {}
 
     /**
-     * Duyệt danh sách và vẽ các hiệu ứng nổ
+     * vẽ các hiệu ứng nổ
      */
     private void renderExplosions() {
         for (ExplosionEffect exp : explosions) {
@@ -322,7 +306,7 @@ public class GameScene {
     }
 
     /**
-     * Duyệt danh sách và vẽ từng tháp lên Canvas
+     * vẽ từng tháp
      */
     private void renderTowers() {
         for (Tower tower : towers) {
@@ -347,10 +331,10 @@ public class GameScene {
     }
 
     /**
-     * Xử lý sự kiện click chuột để đặt Tháp hoặc mở Menu chọn/quản lý Tháp
+     * xử lý sự kiện click chuột để đặt tháp hoặc mở menu chọn/quản lý tháp
      */
     public void handleMouseClick(MouseEvent event) {
-        if (isGameOver) return; // Khóa tương tác chuột khi thua
+        if (isGameOver) return; 
         if (event.getButton() != MouseButton.PRIMARY) return;
 
         double mouseX = event.getX();
@@ -359,27 +343,24 @@ public class GameScene {
         int col = (int) (mouseX / GameConfig.GRID_CELL_SIZE);
         int row = (int) (mouseY / GameConfig.GRID_CELL_SIZE);
 
-        // 1. NẾU MENU ĐANG MỞ TẠI Ô CỜ HIỆN TẠI: Kiểm tra click vào các nút bấm trong Menu
+        // Nếu menu đang mở tại ô hiện tại thì kiểm tra click vào các nút bấm trong menu
         if (selectedCol != -1 && selectedRow != -1) {
             Tower existingTower = towers.stream()
                 .filter(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow)
                 .findFirst().orElse(null);
 
             if (existingTower != null) {
-                // Xử lý click trên Menu Quản Lý Tháp Đã Đặt (Upgrade / Sell)
+                // xử lý click trên menu quản lý tháp đã đặt (nâng cấp/bán)
                 int actionResult = checkManagementMenuOptionClick(mouseX, mouseY, existingTower);
-                if (actionResult == 1) { // Click UPGRADE
+                if (actionResult == 1) { // nâng cấp
                     if (existingTower.canUpgrade()) {
                         int cost = existingTower.getUpgradeCost();
                         if (playerState.spendGold(cost)) {
                             existingTower.upgrade();
-                            System.out.println(">>> Đã nâng cấp tháp lên Level " + existingTower.getLevel());
-                        } else {
-                            System.out.println(">>> Không đủ vàng nâng cấp tháp (Cần " + cost + " Gold)");
                         }
                     }
                     return;
-                } else if (actionResult == 2) { // Click SELL
+                } else if (actionResult == 2) { // bán
                     int refund = existingTower.getSellValue();
                     playerState.addGold(refund);
                     towers.remove(existingTower);
@@ -387,13 +368,12 @@ public class GameScene {
                     if (cell != null) {
                         cell.setType(CellType.EMPTY);
                     }
-                    System.out.println(">>> Đã bán tháp thu hồi " + refund + " Gold");
                     selectedCol = -1;
                     selectedRow = -1;
                     return;
                 }
             } else {
-                // Xử lý click trên Menu Mua Tháp Mới
+                // xử lý click trên menu mua tháp mới
                 TowerType selectedType = checkMenuOptionClick(mouseX, mouseY);
                 if (selectedType != null) {
                     buildTowerAtSelectedCell(selectedType);
@@ -404,7 +384,7 @@ public class GameScene {
             }
         }
 
-        // 2. TÍNH TOÁN VÀ KIỂM TRA Ô CỜ VỪA ĐƯỢC CLICK
+        // xử lý và kiểm tra ô cờ vừa được click
         Cell cell = mapModel.getCell(row, col);
         if (cell != null) {
             Tower towerAtCell = towers.stream()
@@ -412,7 +392,7 @@ public class GameScene {
                 .findFirst().orElse(null);
 
             if (cell.canPlaceTower() || towerAtCell != null) {
-                // Mở Menu tại ô cờ (Mua tháp mới HOẶC Quản lý tháp đã có)
+                // mở menu tại ô cờ (mua tháp mới hoặc quản lý tháp đã có)
                 this.selectedCol = col;
                 this.selectedRow = row;
             } else {
@@ -426,7 +406,7 @@ public class GameScene {
     }
 
     /**
-     * Xử lý mua tháp khi người chơi chọn trong Menu
+     * xử lý mua tháp khi người chơi chọn trong menu
      */
     private void buildTowerAtSelectedCell(TowerType type) {
         Cell cell = mapModel.getCell(selectedRow, selectedCol);
@@ -441,15 +421,12 @@ public class GameScene {
                 Tower tower = new Tower(selectedCol, selectedRow, type);
                 towers.add(tower);
                 cell.setType(CellType.OCCUPIED);
-                System.out.println(">>> Đã mua tháp " + type + " tại Row: " + selectedRow + ", Col: " + selectedCol);
-            } else {
-                System.out.println(">>> Không đủ vàng mua tháp " + type + " (Cần " + cost + " Gold)");
             }
         }
     }
 
     /**
-     * Kiểm tra click vào nút bấm trong Menu Quản Lý Tháp (1: UPGRADE, 2: SELL, 0: không trúng)
+     * kiểm tra click vào nút bấm trong menu quản lý tháp (1: nâng cấp, 2: bán, 0: không trúng)
      */
     private int checkManagementMenuOptionClick(double mouseX, double mouseY, Tower tower) {
         double cellSize = GameConfig.GRID_CELL_SIZE;
@@ -468,16 +445,16 @@ public class GameScene {
         double btnH = 38;
 
         if (mouseX >= btn1X && mouseX <= btn1X + btnW && mouseY >= btn1Y && mouseY <= btn1Y + btnH) {
-            return 1; // UPGRADE
+            return 1; // nâng cấp
         }
         if (mouseX >= btn2X && mouseX <= btn2X + btnW && mouseY >= btn2Y && mouseY <= btn2Y + btnH) {
-            return 2; // SELL
+            return 2; // bán
         }
         return 0;
     }
 
     /**
-     * Kiểm tra xem click chuột có trúng nút bấm nào trong Menu chọn tháp không
+     * kiểm tra click chuột có trúng nút bấm nào trong menu chọn tháp không
      */
     private TowerType checkMenuOptionClick(double mouseX, double mouseY) {
         double cellSize = GameConfig.GRID_CELL_SIZE;
@@ -506,7 +483,7 @@ public class GameScene {
     }
 
     /**
-     * Vẽ Menu Popup lựa chọn mua tháp hoặc Nâng cấp / Bán tháp (Style Gỗ Cổ Điển)
+     * Vẽ menu popup lựa chọn mua tháp hoặc nâng cấp/bán tháp 
      */
     private void renderBuildMenu() {
         if (isGameOver) return;
@@ -514,26 +491,24 @@ public class GameScene {
 
         double cellSize = GameConfig.GRID_CELL_SIZE;
 
-        // Highlight ô cờ đang chọn (Viền Vàng Hoàng Gia)
         gc.setStroke(Color.web("#ffd700"));
         gc.setLineWidth(2.5);
         gc.strokeRect(selectedCol * cellSize, selectedRow * cellSize, cellSize, cellSize);
 
-        // Tính toán vị trí Menu
         double menuX = selectedCol * cellSize + cellSize / 2 - menuWidth / 2;
         double menuY = selectedRow * cellSize - menuHeight - 12;
 
-        // Chống tràn màn hình
+        // chống tràn màn hình
         if (menuX < 10) menuX = 10;
         if (menuX + menuWidth > GameConfig.WINDOW_WIDTH - 10) menuX = GameConfig.WINDOW_WIDTH - menuWidth - 10;
         if (menuY < 10) menuY = selectedRow * cellSize + cellSize + 12;
 
-        // Kiểm tra xem tại ô cờ đang chọn đã có tháp hay chưa
+        // kiểm tra ô cờ đã có tháp chưa
         Tower existingTower = towers.stream()
                 .filter(t -> t.getGridCol() == selectedCol && t.getGridRow() == selectedRow)
                 .findFirst().orElse(null);
 
-        // BẬT VÒNG TRÒN BAN KÍNH TẦM BẮN NẾU ĐÃ CÓ THÁP
+        // bật vòng tròn bán kính tầm bắn nếu đã có tháp
         if (existingTower != null) {
             float centerX = existingTower.getX() + existingTower.getWidth() / 2f;
             float centerY = existingTower.getY() + existingTower.getHeight() / 2f;
@@ -546,20 +521,19 @@ public class GameScene {
             gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
         }
 
-        // 1. VẼ KHUNG NỀN BẢNG GỖ (WOODEN PANEL)
-        gc.setFill(Color.web("#2b1810")); // Màu gỗ đậm
+        // vẽ khung nền bảng gỗ
+        gc.setFill(Color.web("#2b1810"));
         gc.fillRoundRect(menuX, menuY, menuWidth, menuHeight, 10, 10);
 
-        // Viền kép giả kim loại vàng đồng
+        // viền kép
         gc.setStroke(Color.web("#8b5a2b"));
         gc.setLineWidth(3);
         gc.strokeRoundRect(menuX, menuY, menuWidth, menuHeight, 10, 10);
 
-        gc.setStroke(Color.web("#d4af37")); // Viền sáng bên trong
+        gc.setStroke(Color.web("#d4af37")); 
         gc.setLineWidth(1);
         gc.strokeRoundRect(menuX + 2, menuY + 2, menuWidth - 4, menuHeight - 4, 8, 8);
 
-        // Căn giữa văn bản cho tiêu đề và các nút
         gc.setTextAlign(TextAlignment.CENTER);
 
         double btn1X = menuX + 8;
@@ -570,21 +544,21 @@ public class GameScene {
         double btnH = 38;
 
         if (existingTower == null) {
-            // === TRƯỜNG HỢP 1: CHỌN MUA THÁP MỚI ===
+            // chọn mua tháp
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 12));
             gc.setFill(Color.web("#fff8dc"));
             gc.fillText("SELECT TOWER", menuX + menuWidth / 2, menuY + 18);
 
-            // --- NÚT 1: GUN TOWER ---
+            // nút 1: tháp gun
             boolean canAffordGun = playerState.getGold() >= TowerType.GUN.getCost();
             drawWoodenButton(btn1X, btn1Y, btnW, btnH, "⚡ GUN", (int) TowerType.GUN.getCost() + "G", canAffordGun, "#8b4513");
 
-            // --- NÚT 2: SLOW TOWER ---
+            // nút 2: tháp slow
             boolean canAffordSlow = playerState.getGold() >= TowerType.SLOW.getCost();
             drawWoodenButton(btn2X, btn2Y, btnW, btnH, "❄ SLOW", (int) TowerType.SLOW.getCost() + "G", canAffordSlow, "#1e3d59");
 
         } else {
-            // === TRƯỜNG HỢP 2: NÂNG CẤP HOẶC BÁN THÁP ===
+            // nâng cấp hoặc bán tháp
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 12));
             gc.setFill(Color.web("#ffd700"));
             gc.fillText("TOWER Lv." + existingTower.getLevel(), menuX + menuWidth / 2, menuY + 18);
@@ -594,28 +568,27 @@ public class GameScene {
             int sellRefund = existingTower.getSellValue();
             boolean canAffordUpgrade = canUpgrade && playerState.getGold() >= upgradeCost;
 
-            // --- NÚT 1: UPGRADE ---
+            // nút 1 : nâng cấp
             String costLabel = canUpgrade ? upgradeCost + "G" : "MAX";
             drawWoodenButton(btn1X, btn1Y, btnW, btnH, "▲ UP", costLabel, canAffordUpgrade, "#2e5a27");
 
-            // --- NÚT 2: SELL ---
+            // nút 2 : bán
             drawWoodenButton(btn2X, btn2Y, btnW, btnH, "💰 SELL", "+" + sellRefund + "G", true, "#8b0000");
         }
 
-        // Khôi phục thuộc tính căn lề mặc định
         gc.setTextAlign(TextAlignment.LEFT);
     }
 
     /**
-     * Hàm phụ trợ vẽ Nút Bấm phong cách Gỗ 3D
+     * Hàm phụ trợ vẽ Nút Bấm 
      */
     private void drawWoodenButton(double x, double y, double w, double h, String title, String cost, boolean enabled, String baseColorHex) {
         if (enabled) {
-            // Nền nút bấm
+            // nền nút bấm
             gc.setFill(Color.web(baseColorHex));
             gc.fillRoundRect(x, y, w, h, 6, 6);
 
-            // Viền nổi 3D sáng góc trên/trái
+            // viền sáng góc trên/trái
             gc.setStroke(Color.web("#ffffff", 0.3));
             gc.setLineWidth(1.5);
             gc.strokeRoundRect(x, y, w, h, 6, 6);
@@ -624,11 +597,11 @@ public class GameScene {
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 11));
             gc.fillText(title, x + w / 2, y + 16);
 
-            gc.setFill(Color.web("#ffd700")); // Vàng ánh kim cho chi phí Gold
+            gc.setFill(Color.web("#ffd700")); 
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
             gc.fillText(cost, x + w / 2, y + 30);
         } else {
-            // Nút bị vô hiệu hóa (Không đủ tiền hoặc đã max)
+            // Nút bị vô hiệu hóa
             gc.setFill(Color.web("#3a3a3a", 0.8));
             gc.fillRoundRect(x, y, w, h, 6, 6);
 
@@ -640,7 +613,7 @@ public class GameScene {
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 11));
             gc.fillText(title, x + w / 2, y + 16);
 
-            gc.setFill(Color.web("#aa5555")); // Màu đỏ nhạt báo thiếu vàng
+            gc.setFill(Color.web("#aa5555")); 
             gc.setFont(Font.font("Arial", FontWeight.BOLD, 10));
             gc.fillText(cost, x + w / 2, y + 30);
         }
@@ -653,7 +626,7 @@ public class GameScene {
             double mouseX = event.getX();
             double mouseY = event.getY();
 
-            // Tự động tính toán ra ô Col và Row tương ứng
+            // Tính toán ra ô Col và Row tương ứng
             this.hoverCol = (int) (mouseX / GameConfig.GRID_CELL_SIZE);
             this.hoverRow = (int) (mouseY / GameConfig.GRID_CELL_SIZE);
     }

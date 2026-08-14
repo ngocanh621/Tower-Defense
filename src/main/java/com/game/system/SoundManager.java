@@ -48,11 +48,8 @@ public class SoundManager {
                 bgmPlayer.setVolume(0.4); // Âm lượng 40%
                 bgmPlayer.play();
                 currentBgmPath = soundPath;
-            } else {
-                System.err.println("Không tìm thấy tệp âm thanh: " + soundPath);
             }
         } catch (Exception e) {
-            System.err.println("Lỗi phát BGM: " + e.getMessage());
         }
     }
 
@@ -82,7 +79,6 @@ public class SoundManager {
      * @param soundPath Đường dẫn đến file âm thanh trong resources (ví dụ: "/audio/goblin_death.mp3")
      */
     public void playSFX(String soundPath) {
-        System.out.println("Đang thử phát file: " + soundPath);
         if (soundPath == null || soundPath.isEmpty()) return;
 
         try {
@@ -95,14 +91,12 @@ public class SoundManager {
                     clip = new AudioClip(resource.toExternalForm());
                     sfxCache.put(soundPath, clip);
                 } else {
-                    System.err.println("Không tìm thấy tệp SFX: " + soundPath);
                     return;
                 }
             }
 
             clip.play(sfxVolume);
         } catch (Exception e) {
-            System.err.println("Lỗi phát SFX: " + e.getMessage());
         }
     }
 

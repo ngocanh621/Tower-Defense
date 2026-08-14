@@ -295,7 +295,6 @@ public class Enemy extends Entity implements Poolable {
                     frames[i - 1] = new Image(is); // i=1 -> frames[0]
                 }
             } catch (Exception e) {
-                System.err.println("Không thể load sprite enemy: " + e.getMessage());
             }
         }
         return frames;

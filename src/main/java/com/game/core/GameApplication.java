@@ -30,9 +30,13 @@ public class GameApplication extends Application {
         gameLoop.start();
 
         primaryStage.setOnCloseRequest(e -> {
+            if (sceneManager != null && sceneManager.getCurrentGame() != null && sceneManager.getCurrentGame().getPlayerState() != null) {
+                SceneManager.saveHighScore(sceneManager.getCurrentGame().getPlayerState().getScore());
+            }
             if (gameLoop != null) {
                 gameLoop.stop();
-            }            System.exit(0);
+            }
+            System.exit(0);
         });
 
         primaryStage.show();

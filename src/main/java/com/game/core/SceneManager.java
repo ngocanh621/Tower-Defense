@@ -184,6 +184,7 @@ public class SceneManager {
      * tạo màn chơi chính GameScene
      */
     public Scene createGameScene() {
+        EventBus.getInstance().clear();
         BorderPane root = new BorderPane();
         root.setStyle("-fx-background-color: " + Constants.COLOR_BACKGROUND + ";");
 
@@ -219,6 +220,9 @@ public class SceneManager {
     }
 
     public void switchToMenuScene() {
+        if (currentGame != null && currentGame.getPlayerState() != null) {
+            saveHighScore(currentGame.getPlayerState().getScore());
+        }
         //nhạc MENU
         SoundManager.getInstance().playBGM("/audio/mainMenuMusic.mp3");
 
@@ -249,7 +253,7 @@ public class SceneManager {
      */
     public Scene createGameOverScene(int finalScore) {
         //nhạc game over
-        SoundManager.getInstance().playBGM("/audio/gameOverMusic.mp3");
+        SoundManager.getInstance().playBGM("/audio/mainMenuMusic.mp3");
 
         StackPane root = new StackPane();
 

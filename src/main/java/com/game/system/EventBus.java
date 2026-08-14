@@ -54,8 +54,6 @@ public class EventBus {
             try {
                 listener.accept(data);
             } catch (Exception e) {
-                System.err.println("Error in event listener for " + event + ": " + e.getMessage());
-                e.printStackTrace();
             }
         });
     }

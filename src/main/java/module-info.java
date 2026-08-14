@@ -11,4 +11,5 @@ module com.game {
     exports com.game.system;
     exports com.game.map;
     exports com.game.util;
+    exports com.game.view;
 }
