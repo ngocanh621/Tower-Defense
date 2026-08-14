@@ -1,8 +1,9 @@
 # Stone Guardians: Tower Defense 
 ## Thành Viên & Giảng Viên Hướng Dẫn
 
-- **Nhóm:** 6 | **Lớp:** Lập trình nâng cao INT2215_81
+- **Lớp:** Lập trình nâng cao INT2215_81
 - **Học kỳ:** Học kỳ phụ (2025-2026)
+- **Nhóm:** 6 
 
 ### Thành viên:
 1. Nguyễn Ngọc Ánh - MSSV: 24020034
