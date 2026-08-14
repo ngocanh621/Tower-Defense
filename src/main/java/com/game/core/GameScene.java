@@ -93,6 +93,13 @@ public class GameScene {
                 playerState.addGold(enemy.getReward());
                 playerState.addScore(enemy.getReward() * 10); // Thưởng điểm số dựa trên loại quái
 
+                // Phát âm thanh theo tên loại quái bằng switch-case đơn giản
+                switch (enemy.getType()) { // Hoặc enemy.getEnemyType()
+                    case GOBLIN -> SoundManager.getInstance().playSFX("/audio/quai1_Explode.mp3");
+                    case ORC -> SoundManager.getInstance().playSFX("/audio/quai2_Explode.mp3");
+                    case DRAGON -> SoundManager.getInstance().playSFX("/audio/boss_Explode.mp3");
+                }
+
                 // Kiểm tra xem quái này có ảnh hiệu ứng vỡ/nổ khi chết hay không
                 String expPath = enemy.getExplosionImagePath();
                 if (expPath != null) {

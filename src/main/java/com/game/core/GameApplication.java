@@ -32,8 +32,7 @@ public class GameApplication extends Application {
         primaryStage.setOnCloseRequest(e -> {
             if (gameLoop != null) {
                 gameLoop.stop();
-            }
-            System.exit(0);
+            }            System.exit(0);
         });
 
         primaryStage.show();
