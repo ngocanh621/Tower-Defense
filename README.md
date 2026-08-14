@@ -1,8 +1,7 @@
-# Stone Guardians: Tower Defense - Advanced Programming Project
-
+# Stone Guardians: Tower Defense 
 ## Thành Viên & Giảng Viên Hướng Dẫn
 
-- **Nhóm:** 6 | **Lớp:** INT2215_81
+- **Nhóm:** 6 | **Lớp:** Lập trình nâng cao INT2215_81
 - **Học kỳ:** Học kỳ phụ (2025-2026)
 
 ### Thành viên:
