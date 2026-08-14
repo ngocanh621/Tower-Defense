@@ -1,9 +1,9 @@
-# Stone Guardians: Tower Defense - Advanced Programming Project
-
+# Stone Guardians: Tower Defense 
 ## Thành Viên & Giảng Viên Hướng Dẫn
 
-- **Nhóm:** 6 | **Lớp:** INT2215_81
+- **Lớp:** Lập trình nâng cao INT2215_81
 - **Học kỳ:** Học kỳ phụ (2025-2026)
+- **Nhóm:** 6 
 
 ### Thành viên:
 1. Nguyễn Ngọc Ánh - MSSV: 24020034
@@ -129,15 +129,6 @@ Stone Guardians là một dự án game Tower Defense 2D hiện đại được 
 
 ---
 
-## Hình Ảnh Demo (Screenshots)
-
-- Màn Hình Chính (Main Menu)
-- Bố Trí Phòng Thủ (Gameplay)
-- Menu Mua / Bán Tháp
-- Hệ thống Wave & Kẻ thù
-
----
-
 ## Hướng Phát Triển Tương Lai (Future Improvements)
 
 - Mở rộng Gameplay:
@@ -161,4 +152,4 @@ Stone Guardians là một dự án game Tower Defense 2D hiện đại được 
 
 ---
 
-Cập nhật lần cuối: 12/08/2026
+Cập nhật lần cuối: 15/08/2026
