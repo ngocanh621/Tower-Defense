@@ -200,7 +200,7 @@ public class SceneManager {
         Canvas gameCanvas = new Canvas(GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
         GraphicsContext gc = gameCanvas.getGraphicsContext2D();
 
-        GameScene gameScene = new GameScene(gameCanvas, gc);
+        GameScene gameScene = new GameScene(gameCanvas, gc, this);
         this.currentGame = gameScene;
 
         root.setCenter(gameCanvas);

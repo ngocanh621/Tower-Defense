@@ -76,12 +76,12 @@ public class IntroScene {
         ));
         storyList.add(new CutsceneNode(
                 "/assets/MainScreen.png", // Đổi thành ảnh quái nếu bạn có
-                "👑 VUA ĐÁ LÔ CÔ",
+                "VUA ĐÁ LÔ CÔ",
                 "Khè khè! Vàng kìa các con! Hãy tràn vào gác xép và cướp sạch mọi đồng tiền vàng cho ta!"
         ));
         storyList.add(new CutsceneNode(
-                "/assets/MainScreen.png", // Đổi thành ảnh map nếu bạn có
-                "🛡 TƯỚNG CHỈ HUY",
+                "/assets/Scene3.png", // Đổi thành ảnh map nếu bạn có
+                "TƯỚNG CHỈ HUY",
                 "Bảo vệ Doanh Trại! Bố trí các Tháp Phòng Thủ dọc con đường rừng, tuyệt đối không cho chúng chạm vào kho báu!"
         ));
     }
