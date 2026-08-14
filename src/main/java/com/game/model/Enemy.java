@@ -17,58 +17,57 @@ import javafx.scene.paint.Color;
 
 
 /**
- * Đại diện cho 1 enemy.
- * Kế thừa từ Entity (quản lý tọa độ, kích thước, va chạm) và cài đặt Poolable (tái chế bộ nhớ).
- * Quái di chuyển từ ô SPAWN tới ô BASE và có thể nhận sát thương từ tháp phòng thủ.
+ * quái
+ * kế thừa từ Entity và cài đặt Poolable
+ * quái di chuyển từ SPAWN tới BASE và có thể nhận sát thương từ tháp
  */
 public class Enemy extends Entity implements Poolable {
 
-    private EnemyType type;        // Loại quái (GOBLIN, ORC, DRAGON)
-    private float hp;              // Lượng máu hiện tại
-    private float maxHp;           // Lượng máu tối đa
-    private float speed;           // Tốc độ di chuyển (pixel/giây)
-    private int reward;            // Số tiền vàng thưởng cho người chơi khi hạ gục
-    private boolean reachedBase;   // Cờ đánh dấu quái đã chạm nhà chính hay chưa
-    private Animation anim;        // Khai báo thuộc tính animation
+    private EnemyType type;        // loại quái
+    private float hp;              // máu hiện tại
+    private float maxHp;           // máu tối đa
+    private float speed;           // tốc độ di chuyển 
+    private int reward;            // số tiền vàng thưởng cho người chơi khi hạ gục
+    private boolean reachedBase;   // cờ đánh dấu quái đã chạm nhà chính hay chưa
+    private Animation anim;        // animation
 
-    private final List<Point2D> waypoints = new ArrayList<>(); // Danh sách các điểm mốc trên đường đi
-    private int currentWaypointIndex = 0;                      // Chỉ số điểm mốc mục tiêu hiện tại
+    private final List<Point2D> waypoints = new ArrayList<>(); // danh sách các điểm mốc trên đường đi
+    private int currentWaypointIndex = 0;                      // chỉ số điểm mốc mục tiêu hiện tại
 
     /**
-     * Constructor mặc định khóa trạng thái active = false.
-     * Được dùng khi khởi tạo sẵn trong ObjectPool (Kho tái chế).
+     * mặc định active = false.
      */
     public Enemy() {
         super(0, 0, 0, 0);
-        this.active = false; // Mặc định quái "ngủ đông" trong kho
+        this.active = false; // quái trong kho
     }
 
-    private float slowTimer = 0f;       // Thời gian hiệu ứng slow còn lại (giây)
-    private float slowFactor = 1.0f;     // Hệ số làm chậm (ví dụ 0.5f nghĩa là giảm 50% tốc độ)
+    private float slowTimer = 0f;       // thời gian hiệu ứng slow còn lại 
+    private float slowFactor = 1.0f;     // hệ số làm chậm (0.5f giảm 50% tốc độ)
 
     /**
-     * Khởi tạo các thuộc tính và vị trí xuất hiện của quái trên bản đồ.
+     * khởi tạo các thuộc tính và vị trí xuất hiện của quái trên bản đồ
      */
     public void initialize(EnemyType type, MapModel mapModel) {
         this.type = type;
-        this.maxHp = type.getHp();    // Lấy HP gốc từ cấu hình
+        this.maxHp = type.getHp();    
         this.hp = maxHp;
-        this.speed = type.getSpeed(); // Lấy tốc độ từ cấu hình
-        this.reward = type.getReward(); // Lấy phần thưởng vàng từ cấu hình
+        this.speed = type.getSpeed(); 
+        this.reward = type.getReward(); 
         this.reachedBase = false;
         this.slowTimer = 0f;
         this.slowFactor = 1.0f;
 
-        Image[] frames = loadSprite(type); // Khởi tạo animation với 4 frames ảnh
+        Image[] frames = loadSprite(type); 
         this.anim = new Animation(frames, 0.15);
 
-        // Tính toán kích thước quái
+        // tính kích thước quái
         float scale = (type == EnemyType.DRAGON) ? 1.4f : 1.0f;
         float size = GameConfig.GRID_CELL_SIZE * scale;
         this.width = size;
         this.height = size;
 
-        // Lấy danh sách các điểm mốc đường đi (Waypoints) từ MapModel
+        // danh sách các điểm mốc đường đi
         waypoints.clear();
         if (mapModel != null && mapModel.getPathWaypoints() != null) {
             waypoints.addAll(mapModel.getPathWaypoints());
@@ -76,21 +75,21 @@ public class Enemy extends Entity implements Poolable {
 
         this.currentWaypointIndex = 0;
 
-        // Đặt vị trí xuất phát ban đầu tại điểm mốc đầu tiên (SPAWN)
+        // vị trí xuất phát tại điểm mốc đầu tiên (SPAWN)
         if (!waypoints.isEmpty()) {
             Point2D startWp = waypoints.get(0);
             this.x = (float) startWp.getX() - size / 2f;
             this.y = (float) startWp.getY() - size / 2f;
-            this.currentWaypointIndex = 1; // Hướng tới điểm mốc thứ 2
+            this.currentWaypointIndex = 1; // hướng tới điểm mốc thứ 2
         }
 
-        this.active = true; // Bật cờ cho phép quái hoạt động và vẽ lên màn hình
+        this.active = true; // bật cờ cho phép quái hoạt động và render
     }
 
     /**
-     * Gây hiệu ứng làm chậm lên quái
-     * @param factor Tỷ lệ tốc độ còn lại (vd: 0.5f nghĩa là còn 50% tốc độ)
-     * @param duration Thời gian làm chậm (giây)
+     * hiệu ứng làm chậm quái
+     * @param factor tỷ lệ tốc độ còn lại (0.5f giảm 50% tốc độ)
+     * @param duration thời gian làm chậm (giây)
      */
     public void applySlow(float factor, float duration) {
         this.slowFactor = factor;
@@ -98,24 +97,24 @@ public class Enemy extends Entity implements Poolable {
     }
 
     /**
-     * Cập nhật logic di chuyển của quái theo từng khung hình (Update loop).
+     * cập nhật logic di chuyển của quái theo từng khung hình
      */
     @Override
     public void update(double deltaTime) {
         if (!active || reachedBase) {
-            return; // Nếu quái chưa được kích hoạt hoặc đã chạm đích thì bỏ qua
+            return; // nếu quái chưa được kích hoạt hoặc đã chạm đích thì bỏ qua
         }
 
-        // Cập nhật đếm ngược hiệu ứng slow
+        // cập nhật đếm ngược hiệu ứng slow
         if (slowTimer > 0) {
             slowTimer -= deltaTime;
             if (slowTimer <= 0) {
                 slowTimer = 0;
-                slowFactor = 1.0f; // Hết slow, khôi phục tốc độ bình thường
+                slowFactor = 1.0f; // hết slow, khôi phục tốc độ bình thường
             }
         }
 
-        // Cập nhập frames animation
+        // cập nhật frames animation
         if (anim != null) {
             anim.update(deltaTime);
         }
@@ -125,11 +124,11 @@ public class Enemy extends Entity implements Poolable {
             return;
         }
 
-        // Tính tốc độ thực tế (đã áp dụng hệ số làm chậm slowFactor)
+        // tính tốc độ thực tế (đã áp dụng slowFactor)
         float currentSpeed = speed * slowFactor;
         float remainingStep = (float) (currentSpeed * deltaTime);
 
-        // Vòng lặp tịnh tiến mượt qua nhiều điểm mốc nếu tốc độ cao
+        // tịnh tiến mượt qua nhiều điểm mốc
         while (remainingStep > 0 && currentWaypointIndex < waypoints.size()) {
             float centerX = x + width / 2f;
             float centerY = y + height / 2f;
@@ -143,17 +142,17 @@ public class Enemy extends Entity implements Poolable {
             float distance = (float) Math.sqrt(dx * dx + dy * dy);
 
             if (distance <= remainingStep) {
-                // Đã chạm hoặc vượt mốc, cập nhật tọa độ chính xác mốc này và chuyển sang mốc kế tiếp
+                // đã chạm hoặc vượt mốc, cập nhật tọa độ chính xác mốc này và chuyển sang mốc kế tiếp
                 this.x = targetX - width / 2f;
                 this.y = targetY - height / 2f;
                 remainingStep -= distance;
                 currentWaypointIndex++;
                 if (currentWaypointIndex >= waypoints.size()) {
-                    reachBase(); // Đã chạm căn cứ lều xanh
+                    reachBase(); // đã chạm căn cứ lều xanh
                     return;
                 }
             } else {
-                // Tịnh tiến vị trí quái theo hướng mốc hiện tại
+                // tịnh tiến vị trí quái theo hướng mốc hiện tại
                 this.x += (dx / distance) * remainingStep;
                 this.y += (dy / distance) * remainingStep;
                 remainingStep = 0;
@@ -162,28 +161,21 @@ public class Enemy extends Entity implements Poolable {
     }
 
     /**
-     * Vẽ hình ảnh con quái lên màn hình Canvas (Render loop).
+     * render
      */
     @Override
     public void render(GraphicsContext gc) {
         if (!active) {
-            return; // Ẩn quái nếu trạng thái không hoạt động
+            return; 
         }
 
-        Image currentImg = (anim != null) ? anim.getCurrentFrame() : null; // Lấy Frames ảnh từ animation
+        Image currentImg = (anim != null) ? anim.getCurrentFrame() : null; 
 
         if (currentImg != null && !currentImg.isError()) {
             gc.drawImage(currentImg, x, y, width, height);
-        } else {
-            // Tô màu và vẽ hình tròn đại diện cho quái nếu không có ảnh
-            gc.setFill(getColorForType());
-            gc.fillOval(x, y, width, height);
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1);
-            gc.strokeOval(x, y, width, height);
         }
 
-        // Vẽ hiệu ứng đóng băng / làm chậm màu xanh dương mờ lên quái khi bị Slow
+        // vẽ hiệu ứng đóng băng lên quái khi bị Slow
         if (slowTimer > 0) {
             gc.setFill(Color.rgb(56, 189, 248, 0.4));
             gc.fillOval(x - 2, y - 2, width + 4, height + 4);
@@ -192,70 +184,69 @@ public class Enemy extends Entity implements Poolable {
             gc.strokeOval(x - 2, y - 2, width + 4, height + 4);
         }
 
-        // Vẽ thanh máu ngay trên đầu quái
+        // vẽ thanh máu
         renderHealthBar(gc);
     }
 
     /**
-     * Phương thức phụ trách vẽ thanh máu (Health Bar) linh hoạt trên đầu quái.
+     * vẽ thanh máu
      */
     private void renderHealthBar(GraphicsContext gc) {
         double barWidth = width;
         double barHeight = 5;
         double barX = x;
-        double barY = y - 8; // Đặt thanh máu nhích lên trên đầu quái 8px
+        double barY = y - 8; 
         
-        // Tỷ lệ máu còn lại (từ 0.0 đến 1.0)
+        // tỷ lệ máu còn lại
         double healthRatio = Math.max(0, hp / maxHp);
 
-        // 1. Vẽ nền màu đen xám mờ cho thanh máu
+        // vẽ nền màu đen xám mờ cho thanh máu
         gc.setFill(Color.web("#000000", 0.6));
         gc.fillRect(barX, barY, barWidth, barHeight);
 
-        // 2. Vẽ lượng máu hiện tại bằng màu xanh lá (LIME) co rút theo tỷ lệ hp/maxHp
+        // vẽ lượng máu hiện tại bằng màu xanh lá co rút theo tỷ lệ hp/maxHp
         gc.setFill(Color.LIME);
         gc.fillRect(barX, barY, barWidth * healthRatio, barHeight);
 
-        // 3. Vẽ khung viền trắng bao quanh thanh máu
+        // vẽ khung viền trắng bao quanh thanh máu
         gc.setStroke(Color.WHITE);
         gc.strokeRect(barX, barY, barWidth, barHeight);
     }
 
     /**
-     * Trừ máu quái khi bị đạn trúng.
-     * * @param amount Lượng sát thương nhận vào
+     * trừ máu quái khi bị đạn trúng
+     * @param amount lượng sát thương nhận vào
      */
     public void takeDamage(float amount) {
         if (!active) {
             return;
         }
 
-        hp -= amount; // Trừ máu
+        hp -= amount; 
         if (hp <= 0) {
-            die(); // Quái chết nếu máu <= 0
+            die(); 
         }
     }
 
     /**
-     * Xử lý khi quái hết máu (Bị tiêu diệt).
+     * xử lý khi quái hết máu
      */
     private void die() {
-        active = false; // Tắt trạng thái hoạt động để cất lại vào ObjectPool
-        // Phát sự kiện ENEMY_DIED qua EventBus để PlayerState cộng vàng
+        active = false; 
+        // phát sự kiện ENEMY_DIED qua EventBus để PlayerState cộng vàng
         EventBus.getInstance().publish(GameEvent.ENEMY_DIED, this);
     }
 
     /**
-     * Xử lý khi quái chạm được vào nhà chính (BASE).
+     * xử lý khi quái chạm được vào nhà chính
      */
     private void reachBase() {
         active = false;
         reachedBase = true;
-        // Phát sự kiện ENEMY_REACHED_BASE để PlayerState trừ máu người chơi
+        // phát sự kiện ENEMY_REACHED_BASE để PlayerState trừ máu người chơi
         EventBus.getInstance().publish(GameEvent.ENEMY_REACHED_BASE, this);
     }
 
-    // === CÁC HÀM GETTER / SETTER ===
     public boolean isReachedBase() { return reachedBase; }
     public float getHp() { return hp; }
     public float getMaxHp() { return maxHp; }
@@ -266,7 +257,7 @@ public class Enemy extends Entity implements Poolable {
     }
 
     /**
-     * Tẩy sạch thông số cũ để đưa đối tượng về trạng thái mới tinh trước khi tái sử dụng (Interface Poolable).
+     * reset
      */
     @Override
     public void reset() {

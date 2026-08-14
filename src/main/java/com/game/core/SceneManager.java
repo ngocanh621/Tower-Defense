@@ -27,7 +27,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 /**
- * Quản lý chuyển cảnh giữa menu, màn chơi và lưu trữ High Score.
+ * quản lý chuyển cảnh giữa menu, màn chơi và lưu trữ High Score
  */
 public class SceneManager {
 
@@ -40,14 +40,12 @@ public class SceneManager {
     }
 
     /**
-     * Tạo giao diện menu chính với tiêu đề, high score, nút bắt đầu và thoát.
+     * tạo giao diện menu chính với tiêu đề, high score, nút bắt đầu và thoát
      */
     public Scene createMenuScene() {
-        // === BẬT NHẠC NỀN MENU KHỞI TẠO ===
         SoundManager.getInstance().playBGM("/audio/mainMenuMusic.mp3");
 
         StackPane root = new StackPane();
-        // 1. Nạp đường dẫn ảnh nền
         String bgPath = getClass().getResource("/assets/MainScreen.png") != null
                 ? getClass().getResource("/assets/MainScreen.png").toExternalForm()
                 : "";
@@ -59,18 +57,17 @@ public class SceneManager {
         } else {
             root.setStyle("-fx-background-color: #0f172a;");
         }
-        // 2. Lớp phủ mờ cho background
+
         StackPane overlay = new StackPane();
         overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.35);");
-        // 3.Tiêu đề
+        
         ImageView titleImage = new ImageView();
         try {
             Image img = new Image(getClass().getResourceAsStream("/assets/logo.png"));
             titleImage.setImage(img);
-            titleImage.setFitWidth(400); // Chỉnh chiều rộng logo theo ý muốn
-            titleImage.setPreserveRatio(true); // Giữ đúng tỷ lệ ảnh
+            titleImage.setFitWidth(400); 
+            titleImage.setPreserveRatio(true); 
         } catch (Exception e) {
-            // Fallback nếu chưa có ảnh
         }
 
         VBox titleBox = new VBox(4, titleImage);
@@ -82,7 +79,6 @@ public class SceneManager {
         titleShadow.setOffsetY(5);
         titleBox.setEffect(titleShadow);
 
-        // 4. High score
         int bestScore = loadHighScore();
         Label highScoreLabel = new Label("🏆 BEST SCORE: " + bestScore);
         highScoreLabel.setStyle(
@@ -92,14 +88,12 @@ public class SceneManager {
             + "-fx-border-color: #f59e0b; -fx-border-radius: 15px; -fx-border-width: 1.5px;"
         );
 
-        // 5. Các nút bấm
         Button startBtn = createStyledButton("▶  START GAME");
         startBtn.setOnAction(e -> switchToGameScene());
 
         Button quitBtn = createStyledButton("❌  QUIT GAME");
         quitBtn.setOnAction(e -> System.exit(0));
 
-        // 6. Khung chứa căn giữa
         VBox menuBox = new VBox(15, titleBox, highScoreLabel, startBtn, quitBtn);
         menuBox.setAlignment(Pos.CENTER);
         menuBox.setMaxWidth(500);
@@ -119,14 +113,13 @@ public class SceneManager {
     }
 
     /**
-     * Hàm tạo Button kiểu Wooden Banner giả gỗ với hiệu ứng Hover phóng to nhẹ
+     * Button
      */
     private Button createStyledButton(String text) {
         Button btn = new Button(text);
         btn.setPrefWidth(280);
         btn.setPrefHeight(50);
 
-        // Style khung gỗ + viền vàng đồng + đổ bóng
         String styleNormal =
                 "-fx-background-color: linear-gradient(to bottom, #7f4f24, #582f0e); " +
                         "-fx-text-fill: #ffedd5; " +
@@ -156,7 +149,7 @@ public class SceneManager {
     }
 
     /**
-     * Đọc High Score từ file lưu trữ local.
+     * đọc high score 
      */
     public static int loadHighScore() {
         File file = new File(HIGH_SCORE_FILE);
@@ -173,7 +166,7 @@ public class SceneManager {
     }
 
     /**
-     * Cập nhật High Score mới nếu kỷ lục bị phá.
+     * lưu high score 
      */
     public static void saveHighScore(int newScore) {
         int currentBest = loadHighScore();
@@ -188,7 +181,7 @@ public class SceneManager {
     }
 
     /**
-     * Tạo màn chơi chính (GameScene).
+     * tạo màn chơi chính GameScene
      */
     public Scene createGameScene() {
         BorderPane root = new BorderPane();
@@ -200,7 +193,7 @@ public class SceneManager {
         GameScene gameScene = new GameScene(gameCanvas, gc);
         this.currentGame = gameScene;
 
-        // Lắng nghe khi GameScene phát tín hiệu GAME_OVER
+        // lắng nghe khi GameScene phát tín hiệu GAME_OVER
         EventBus.getInstance().subscribe(GameEvent.GAME_OVER, data -> {
             if (data instanceof Integer score) {
                 switchToGameOverScene(score);
@@ -226,7 +219,7 @@ public class SceneManager {
     }
 
     public void switchToMenuScene() {
-        // === ĐỔI SANG NHẠC MENU KHI THOÁT RA GAME ===
+        //nhạc MENU
         SoundManager.getInstance().playBGM("/audio/mainMenuMusic.mp3");
 
         Scene menuScene = createMenuScene();
@@ -235,7 +228,7 @@ public class SceneManager {
     }
 
     public void switchToGameScene() {
-        // === ĐỔI SANG NHẠC IN-GAME KHI BẮT ĐẦU CHƠI ===
+        //nhạc gameplay
         SoundManager.getInstance().playBGM("/audio/GamePlayMusic.mp3");
 
         Scene gameScene = createGameScene();
@@ -252,15 +245,14 @@ public class SceneManager {
     }
 
     /**
-     * Tạo Scene Game Over đồng bộ phong cách thiết kế với Main Menu
+     * Tạo Scene Game Over 
      */
     public Scene createGameOverScene(int finalScore) {
-        // === ĐỔI SANG NHẠC GAME OVER (Nếu có) ===
-        // SoundManager.getInstance().playBGM("/audio/gameOverMusic.mp3");
+        //nhạc game over
+        SoundManager.getInstance().playBGM("/audio/gameOverMusic.mp3");
 
         StackPane root = new StackPane();
 
-        // 1. Nạp ảnh nền
         String bgPath = getClass().getResource("/assets/MainScreen.png") != null
                 ? getClass().getResource("/assets/MainScreen.png").toExternalForm()
                 : "";
@@ -273,11 +265,10 @@ public class SceneManager {
             root.setStyle("-fx-background-color: #0f172a;");
         }
 
-        // 2. Lớp phủ mờ tối màu hơn
         StackPane overlay = new StackPane();
         overlay.setStyle("-fx-background-color: rgba(15, 23, 42, 0.75);");
 
-        // 3. Tiêu đề GAME OVER
+        //GAME OVER
         Label gameOverLabel = new Label("GAME OVER");
         gameOverLabel.setStyle(
                 "-fx-font-family: 'Arial'; -fx-font-size: 50px; -fx-font-weight: bold; "
@@ -294,7 +285,7 @@ public class SceneManager {
         titleShadow.setOffsetY(5);
         headerBox.setEffect(titleShadow);
 
-        // 4. Kiểm tra và Cập nhật High Score
+        //kiểm tra và cập nhật High Score
         int currentBest = loadHighScore();
         boolean isNewHighScore = finalScore > currentBest;
         if (isNewHighScore) {
@@ -302,7 +293,7 @@ public class SceneManager {
             currentBest = finalScore;
         }
 
-        // 5. Khung hiển thị điểm (Score Card Panel)
+        //khung hiển thị điểm
         Label currentScoreLabel = createBadgeLabel("🎯 YOUR SCORE: " + finalScore, "#38bdf8");
         Label bestScoreLabel = createBadgeLabel("🏆 BEST SCORE: " + currentBest, "#f59e0b");
 
@@ -324,7 +315,6 @@ public class SceneManager {
             scoreCard.getChildren().add(0, newRecordBadge);
         }
 
-        // 6. Các nút bấm điều hướng
         Button restartBtn = createStyledButton("🔄  PLAY AGAIN");
         restartBtn.setOnAction(e -> switchToGameScene());
 
@@ -334,7 +324,7 @@ public class SceneManager {
         Button quitBtn = createStyledButton("❌  QUIT GAME");
         quitBtn.setOnAction(e -> System.exit(0));
 
-        // 7. Gom tất cả vào VBox trung tâm
+        //gom tất cả vào VBox trung tâm
         VBox gameOverBox = new VBox(16, headerBox, scoreCard, restartBtn, menuBtn, quitBtn);
         gameOverBox.setAlignment(Pos.CENTER);
         gameOverBox.setMaxWidth(480);
@@ -354,7 +344,7 @@ public class SceneManager {
     }
 
     /**
-     * Hàm phụ trợ tạo nhãn Badge hiển thị điểm số
+     * tạo nhãn hiển thị điểm số
      */
     private Label createBadgeLabel(String text, String colorHex) {
         Label label = new Label(text);

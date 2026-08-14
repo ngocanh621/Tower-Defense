@@ -5,10 +5,8 @@ import java.util.*;
 import java.util.function.Supplier;
 
 /**
- * Generic object pool for managing reusable objects.
- * Reduces garbage collection pressure by recycling objects.
- *
- * @param <T> The type of objects to pool (must implement Poolable)
+ * Kho tái chế đối tượng (Object Pool) dùng chung cho các thực thể kế thừa Poolable
+ * Giúp tối ưu bộ nhớ và giảm hiện tượng giật lag do Garbage Collector dọn dẹp bộ nhớ liên tục
  */
 public class ObjectPool<T extends Poolable> {
 
@@ -23,15 +21,15 @@ public class ObjectPool<T extends Poolable> {
         this.available = new LinkedList<>();
         this.inUse = new HashSet<>();
 
-        // Pre-allocate objects
+        // khởi tạo sẵn danh sách đối tượng ban đầu trong kho
         for (int i = 0; i < initialSize; i++) {
             available.offer(factory.get());
         }
     }
 
     /**
-     * Acquire an object from the pool.
-     * If no objects are available, a new one is created.
+     * lấy một đối tượng từ kho ra để sử dụng
+     * nếu kho hết đối tượng sẵn có, sẽ tạo mới một đối tượng
      */
     public T acquire() {
         T obj = available.poll();
@@ -44,7 +42,7 @@ public class ObjectPool<T extends Poolable> {
     }
 
     /**
-     * Release an object back to the pool.
+     * cất một đối tượng không còn sử dụng trở lại kho tái chế
      */
     public void release(T obj) {
         if (inUse.remove(obj)) {
@@ -55,28 +53,28 @@ public class ObjectPool<T extends Poolable> {
     }
 
     /**
-     * Get the number of available objects in the pool.
+     * lấy số lượng đối tượng đang rảnh rỗi trong kho
      */
     public int getAvailableCount() {
         return available.size();
     }
 
     /**
-     * Get the number of objects currently in use.
+     * lấy số lượng đối tượng đang được sử dụng trên màn hình
      */
     public int getInUseCount() {
         return inUse.size();
     }
 
     /**
-     * Get the total number of objects in the pool (available + in use).
+     * lấy tổng số đối tượng do kho quản lý (rảnh rỗi + đang dùng)
      */
     public int getTotalCount() {
         return available.size() + inUse.size();
     }
 
     /**
-     * Expand the pool by creating new objects.
+     * mở rộng thêm số lượng đối tượng trong kho
      */
     public void expand(int count) {
         for (int i = 0; i < count; i++) {
@@ -85,7 +83,7 @@ public class ObjectPool<T extends Poolable> {
     }
 
     /**
-     * Clear the entire pool.
+     * xóa toàn bộ đối tượng trong kho
      */
     public void clear() {
         available.clear();

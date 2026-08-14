@@ -13,10 +13,10 @@ public class ExplosionEffect {
     private Image explosionImage;
 
     private float displayTimer = 0f;
-    private final float MAX_LIFETIME = 0.2f; // Thời gian hiển thị 0.2s
+    private final float MAX_LIFETIME = 0.2f; 
     private boolean active = true;
 
-    // Sửa Constructor nhận đường dẫn ảnh nổ riêng cho từng quái
+    // constructor nhận đường dẫn ảnh nổ riêng cho từng quái
     public ExplosionEffect(float x, float y, float width, float height, String imagePath) {
         this.x = x;
         this.y = y;
@@ -32,7 +32,6 @@ public class ExplosionEffect {
                 this.explosionImage = new Image(is);
             }
         } catch (Exception e) {
-            // Bỏ qua lỗi nếu không tìm thấy ảnh
         }
     }
 

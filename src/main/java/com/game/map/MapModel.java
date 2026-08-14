@@ -6,8 +6,8 @@ import java.util.List;
 import javafx.geometry.Point2D;
 
 /**
- * Mô hình bản đồ game khớp chuẩn 100% với con đường vàng trên hình ảnh map.png.
- * Quản lý danh sách ô cờ (grid) và tọa độ các điểm mốc (Waypoints).
+ * mô hình bản đồ
+ * quản lý danh sách ô grid và tọa độ các điểm mốc Waypoints
  */
 public class MapModel {
 
@@ -24,17 +24,17 @@ public class MapModel {
     }
 
     /**
-     * Khởi tạo bản đồ khớp vệt đường vàng trên ảnh map.png (1280x720).
+     * khởi tạo bản đồ
      */
     private void initializeGrid() {
-        // 1. Khởi tạo toàn bộ các ô ban đầu là PATH (không cho phép đặt tháp ở bãi cỏ/cây cối)
+        // khởi tạo toàn bộ các ô ban đầu là PATH (ko cho phép đặt tháp ở bãi cỏ)
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 grid[r][c] = new Cell(r, c, CellType.PATH);
             }
         }
 
-        // 2. Danh sách mốc tọa độ chính xác của con đường đất vàng trên map3.png
+        // Danh sách mốc tọa độ
         double[][] rawControlPoints = {
             {0, 210},
             {120, 245},
@@ -73,7 +73,7 @@ public class MapModel {
             {1055, 145}
         };
 
-        // 3. Nội suy mượt mà giữa các điểm mốc (Subdivide/Interpolate)
+        // nội suy mượt đường quái đi
         pathWaypoints.clear();
         for (int i = 0; i < rawControlPoints.length - 1; i++) {
             double p1x = rawControlPoints[i][0];
@@ -82,7 +82,7 @@ public class MapModel {
             double p2y = rawControlPoints[i + 1][1];
 
             double dist = Math.hypot(p2x - p1x, p2y - p1y);
-            int steps = Math.max(1, (int) (dist / 15.0)); // Mỗi nấc cách nhau khoảng 15px để quái đi cực mượt
+            int steps = Math.max(1, (int) (dist / 15.0)); 
 
             for (int s = 0; s < steps; s++) {
                 double t = (double) s / steps;
@@ -91,11 +91,11 @@ public class MapModel {
                 pathWaypoints.add(new Point2D(ix, iy));
             }
         }
-        // Thêm điểm mốc cuối cùng
+        // thêm điểm cuối cùng
         double[] last = rawControlPoints[rawControlPoints.length - 1];
         pathWaypoints.add(new Point2D(last[0], last[1]));
 
-        // 4. Đánh dấu các ô nằm trên con đường di chuyển của quái thành CellType.PATH
+        // đánh dấu các ô nằm trên con đường di chuyển của quái thành CellType.PATH
         double cellSize = GameConfig.GRID_CELL_SIZE;
         for (Point2D wp : pathWaypoints) {
             int col = (int) (wp.getX() / cellSize);
@@ -106,7 +106,7 @@ public class MapModel {
             }
         }
 
-        // 5. Đánh dấu ô SPAWN và BASE
+        // đánh dấu ô SPAWN và BASE
         Point2D spawnWp = pathWaypoints.get(0);
         Point2D baseWp = pathWaypoints.get(pathWaypoints.size() - 1);
 
@@ -123,7 +123,7 @@ public class MapModel {
             grid[baseRow][baseCol].setType(CellType.BASE);
         }
 
-        // 6. ĐẶC BIỆT: Danh sách đúng 7 ô đất vàng được chỉ định chính xác trên map3
+        // danh sách ô được đặt tháp 
         int[][] yellowBuildPatches = {
             {8, 5},
             {7, 15},
@@ -138,7 +138,7 @@ public class MapModel {
             int r = cellPos[0];
             int c = cellPos[1];
             if (r >= 0 && r < rows && c >= 0 && c < cols) {
-                grid[r][c].setType(CellType.EMPTY); // Đánh dấu ô vàng duy nhất này là EMPTY (cho phép đặt tháp)
+                grid[r][c].setType(CellType.EMPTY); // ô vàng này là ô cho phép đặt tháp 
             }
         }
     }

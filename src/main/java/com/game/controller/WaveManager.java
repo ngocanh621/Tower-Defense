@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.Queue;
 
 /**
- * Quản lý các đợt sóng quái vật vô tận (Endless Wave Manager).
- * Tự động tăng độ khó và danh sách quái theo đợt sóng không giới hạn.
+ * quản lý các đợt sóng quái vô tận 
+ * tự động tăng độ khó và danh sách quái theo đợt sóng không giới hạn
  */
 public class WaveManager {
 
     /**
-     * Đại diện cho cấu hình danh sách quái của một đợt sóng.
+     * cấu hình danh sách quái của một đợt sóng
      */
     public static class Wave {
         private final List<EnemyType> enemiesToSpawn;
@@ -45,17 +45,17 @@ public class WaveManager {
     private final float waveDelay;
 
     /**
-     * Khởi tạo WaveManager cho chế độ chơi vô tận.
+     * khởi tạo WaveManager cho chế độ chơi vô tận
      */
     public WaveManager() {
         this.spawnInterval = GameConfig.WAVE_SPAWN_INTERVAL;
         this.waveDelay = GameConfig.WAVE_DELAY;
         setupDefaultWaves();
-        this.waveDelayTimer = 3.0f; // Chờ 3 giây trước đợt sóng đầu tiên
+        this.waveDelayTimer = 3.0f; // chờ 3 giây trước đợt sóng đầu tiên
     }
 
     /**
-     * Khởi tạo các đợt sóng cơ bản ban đầu.
+     * khởi tạo các đợt sóng cơ bản ban đầu
      */
     private void setupDefaultWaves() {
         predefinedWaves.add(createWave(5, 0, 0));
@@ -66,7 +66,7 @@ public class WaveManager {
     }
 
     /**
-     * Tạo đợt sóng quái vật dựa trên số lượng từng loại.
+     * tạo đợt sóng quái vật dựa trên số lượng từng loại
      */
     private Wave createWave(int goblins, int orcs, int dragons) {
         List<EnemyType> list = new ArrayList<>();
@@ -83,13 +83,13 @@ public class WaveManager {
     }
 
     /**
-     * Lấy cấu hình sóng quái. Sinh động độ khó tăng dần nếu vượt quá số sóng mặc định.
+     * lấy cấu hình sóng quái, sinh đợt sóng quái mới nếu vượt quá số sóng mặc định
      */
     private Wave getOrCreateWave(int waveIndex) {
         if (waveIndex < predefinedWaves.size()) {
             return predefinedWaves.get(waveIndex);
         }
-        // Công thức tự động tăng độ khó cho chế độ vô tận (Endless Mode)
+        // công thức tự động tăng độ khó cho chế độ chơi vô tận
         int goblins = 5 + (waveIndex * 2);
         int orcs = Math.max(0, (waveIndex - 1) * 2);
         int dragons = Math.max(0, (waveIndex - 3) * 1);
@@ -97,10 +97,10 @@ public class WaveManager {
     }
 
     /**
-     * Cập nhật logic sóng quái theo thời gian thực.
+     * cập nhật logic sóng quái theo thời gian thực
      */
     public void update(double deltaTime, MapModel mapModel, List<Enemy> activeEnemies) {
-        // Đếm ngược thời gian nghỉ trước đợt sóng tiếp theo
+        // đếm ngược thời gian nghỉ trước đợt sóng tiếp theo
         if (!waveInProgress) {
             waveDelayTimer -= deltaTime;
             if (waveDelayTimer <= 0) {
@@ -109,7 +109,7 @@ public class WaveManager {
             return;
         }
 
-        // Đang diễn ra đợt sóng: Sinh quái theo từng khoảng thời gian
+        // đang diễn ra đợt sóng, sinh quái theo từng khoảng thời gian
         if (!currentSpawnQueue.isEmpty()) {
             spawnTimer -= deltaTime;
             if (spawnTimer <= 0) {
@@ -119,33 +119,33 @@ public class WaveManager {
                     enemy.initialize(enemyType, mapModel);
                     activeEnemies.add(enemy);
 
-                    // Giãn khoảng cách thời gian xuất hiện tùy thuộc từng loại quái (đặc biệt là Boss Dragon)
+                    // giãn khoảng cách thời gian xuất hiện tùy thuộc từng loại quái
                     float interval = spawnInterval;
                     if (enemyType == EnemyType.DRAGON) {
-                        interval = 3.0f; // Giãn 3.0 giây cho Boss Dragon để tránh đè hình ảnh
+                        interval = 3.0f; // giãn 3.0 giây cho Boss Dragon để tránh đè hình ảnh
                     } else if (enemyType == EnemyType.ORC) {
-                        interval = 1.8f; // Giãn 1.8 giây cho Orc
+                        interval = 1.8f; // giãn 1.8 giây cho Orc
                     } else {
-                        interval = 1.0f; // Giãn 1.0 giây cho Goblin
+                        interval = 1.0f; // giãn 1.0 giây cho Goblin
                     }
                     spawnTimer = interval;
                 }
             }
         } else {
-            // Đã sinh hết quái và tất cả quái trên bản đồ đã bị tiêu diệt hoặc chạm đích
+            // đã sinh hết quái và tất cả quái trên bản đồ đã bị tiêu diệt hoặc chạm đích
             if (activeEnemies.isEmpty()) {
                 waveInProgress = false;
                 int completedWaveNumber = currentWaveIndex + 1;
                 EventBus.getInstance().publish(GameEvent.WAVE_COMPLETED, completedWaveNumber);
 
                 currentWaveIndex++;
-                waveDelayTimer = waveDelay; // Bắt đầu thời gian chờ chuyển sang sóng tiếp theo
+                waveDelayTimer = waveDelay; // bắt đầu thời gian chờ chuyển sang sóng tiếp theo
             }
         }
     }
 
     /**
-     * Khởi động đợt sóng tiếp theo.
+     * khởi động đợt sóng tiếp theo
      */
     public void startNextWave() {
         waveInProgress = true;
@@ -156,8 +156,6 @@ public class WaveManager {
 
         EventBus.getInstance().publish(GameEvent.WAVE_STARTED, currentWaveIndex + 1);
     }
-
-    // --- GETTERS ---
 
     public int getCurrentWaveNumber() {
         return currentWaveIndex + 1;
@@ -172,7 +170,7 @@ public class WaveManager {
     }
 
     /**
-     * Reset lại đợt sóng khi chơi lại game mới.
+     * reset lại đợt sóng khi chơi lại game mới
      */
     public void reset() {
         this.currentWaveIndex = 0;

@@ -5,7 +5,7 @@ import com.game.system.GameEvent;
 import com.game.util.GameConfig;
 
 /**
- * Quản lý tài nguyên của người chơi bao gồm Máu (Health) và Tiền (Gold).
+ * quản lý tài nguyên của người chơi
  */
 public class PlayerState {
 
@@ -15,14 +15,14 @@ public class PlayerState {
     private final int maxHealth;
 
     /**
-     * Constructor mặc định: Tự động lấy Máu và Vàng ban đầu từ GameConfig.
+     * lấy máu và vàng ban đầu từ GameConfig
      */
     public PlayerState() {
         this(GameConfig.STARTING_HEALTH, GameConfig.STARTING_GOLD);
     }
 
     /**
-     * Constructor tùy chỉnh thông số ban đầu.
+     * thông số ban đầu
      */
     public PlayerState(int initialHealth, int initialGold) {
         this.health = initialHealth;
@@ -32,26 +32,26 @@ public class PlayerState {
     }
 
     /**
-     * Trừ máu người chơi khi quái xâm nhập căn cứ.
-     * @param damage Số lượng máu bị trừ
+     * trừ máu khi quái vô nhà
+     * @param damage số máu bị trừ
      */
     public void takeDamage(int damage) {
         this.health -= damage;
         if (this.health < 0) {
             this.health = 0;
         }
-        // Bắn sự kiện thông báo máu đã thay đổi để Giao diện (HUD) tự cập nhật
+        // bắn sự kiện thông báo máu đã thay đổi để HUD cập nhật
         EventBus.getInstance().publish(GameEvent.PLAYER_HP_CHANGED, this.health);
 
-        // Bắn sự kiện Game Over nếu máu về 0
+        // bắn sự kiện Game Over nếu máu về 0
         if (this.health <= 0) {
             EventBus.getInstance().publish(GameEvent.GAME_OVER);
         }
     }
 
     /**
-     * Cộng thêm vàng (ví dụ: khi tiêu diệt quái vật).
-     * @param amount Số vàng nhận được
+     * cộng thêm vàng 
+     * @param amount số vàng nhận được
      */
     public void addGold(int amount) {
         this.gold += amount;
@@ -59,7 +59,7 @@ public class PlayerState {
     }
 
     /**
-     * Trừ vàng khi mua tháp phòng thủ hoặc nâng cấp.
+     * trừ vàng khi mua tháp hoặc nâng cấp
      * @param amount Số vàng cần chi trả
      * @return true nếu đủ tiền giao dịch, false nếu không đủ tiền
      */
@@ -73,14 +73,12 @@ public class PlayerState {
     }
 
     /**
-     * Cộng thêm điểm số cho người chơi.
-     * @param points Số điểm thưởng
+     * cộng điểm
+     * @param points điểm thưởng
      */
     public void addScore(int points) {
         this.score += points;
     }
-
-    // --- GETTERS & SETTERS ---
 
     public int getScore() {
         return score;
@@ -111,7 +109,7 @@ public class PlayerState {
     }
 
     /**
-     * Kiểm tra người chơi còn sống hay không.
+     * kiểm tra người chơi sống k
      */
     public boolean isAlive() {
         return health > 0;

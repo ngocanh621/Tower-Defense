@@ -7,8 +7,8 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 /**
- * Đại diện cho viên đạn bắn ra từ Tháp phòng thủ.
- * Kế thừa từ Entity và cài đặt Poolable để quản lý tái sử dụng bộ nhớ.
+ * đạn
+ * kế thừa Entity và cài đặt Poolable
  */
 public class Projectile extends Entity implements Poolable {
 
@@ -18,17 +18,13 @@ public class Projectile extends Entity implements Poolable {
     private boolean isSlow;
     private Image sprite;
 
-    /**
-     * Constructor mặc định với trạng thái active = false.
-     * Thường dùng khi khởi tạo sẵn trong ObjectPool.
-     */
     public Projectile() {
         super(0, 0, 10f, 10f);
         this.active = false;
     }
 
     /**
-     * Khởi tạo thông số đạn khi được bắn ra.
+     * khởi tạo thông số đạn
      */
     public void initialize(float startX, float startY, Enemy target, float damage, float speed, boolean isSlow) {
         this.x = startX;
@@ -56,7 +52,6 @@ public class Projectile extends Entity implements Poolable {
                 }
             }
         } catch (Exception e) {
-            // Chuyển sang vẽ khối màu fallback nếu không tải được ảnh
         }
         return null;
     }
@@ -67,13 +62,12 @@ public class Projectile extends Entity implements Poolable {
             return;
         }
 
-        // Nếu mục tiêu bị hủy hoặc không còn hoạt động, biến mất đạn
         if (target == null || !target.isActive()) {
             active = false;
             return;
         }
 
-        // Tính toán khoảng cách tới vị trí mục tiêu
+        // tính toán khoảng cách tới vị trí mục tiêu
         float bulletCenterX = x + width / 2f;
         float bulletCenterY = y + height / 2f;
         float targetCenterX = target.getX() + target.getWidth() / 2f;
@@ -84,16 +78,16 @@ public class Projectile extends Entity implements Poolable {
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
         float stepDistance = (float) (speed * deltaTime);
 
-        // Nếu đạn chạm tới mục tiêu hoặc va chạm hình hộp
+        // nếu đạn chạm tới mục tiêu hoặc va chạm hình hộp
         if (distance <= stepDistance || overlaps(target)) {
             target.takeDamage(damage);
             if (isSlow) {
-                // Làm chậm quái còn 50% tốc độ trong 2.5 giây
+                // làm chậm quái còn 50% tốc độ trong 2.5 giây
                 target.applySlow(0.5f, 2.5f);
             }
             active = false;
         } else {
-            // Tịnh tiến đạn về phía mục tiêu
+            // tịnh tiến đạn về phía mục tiêu
             x += (dx / distance) * stepDistance;
             y += (dy / distance) * stepDistance;
         }
@@ -108,7 +102,7 @@ public class Projectile extends Entity implements Poolable {
         if (sprite != null && !isSlow) {
             gc.drawImage(sprite, x, y, width, height);
         } else {
-            // Đạn Slow vẽ màu xanh Cyan rực rỡ, đạn thường màu vàng
+            // đạn slow màu xanh, đạn thường màu vàng
             gc.setFill(isSlow ? Color.CYAN : Color.YELLOW);
             gc.fillOval(x, y, width, height);
             gc.setStroke(isSlow ? Color.BLUE : Color.ORANGE);

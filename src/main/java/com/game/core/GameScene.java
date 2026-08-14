@@ -275,13 +275,8 @@ public class GameScene {
     }
 
     public void render() {
-        // Step 1: Vẽ ảnh nền Map (hoặc fallback màu sắc)
         if (mapImage != null && !mapImage.isError()) {
             gc.drawImage(mapImage, 0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
-        } else {
-            gc.setFill(Color.web(Constants.COLOR_BACKGROUND));
-            gc.fillRect(0, 0, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
-            drawMapFallback();
         }
 
         // Step 2: Render các Tháp đã đặt
@@ -296,8 +291,6 @@ public class GameScene {
         //STEP 4': Render hiệu ứng nổ
         renderExplosions();
 
-        // Step 5: Vẽ lưới ô cờ (Overlay)
-        drawGridOverlay();
 
         // Step 5': Hiển thị hiệu ứng hover tại vị trí chuột
         renderTileHover();
@@ -349,24 +342,6 @@ public class GameScene {
         }
     }
 
-    private void drawGridOverlay() {
-        // Tắt hiển thị các đường lưới ô cờ để bản đồ đẹp và mượt mà hơn
-    }
-
-    private void drawMapFallback() {
-        Cell[][] grid = mapModel.getGrid();
-        double cellSize = GameConfig.GRID_CELL_SIZE;
-
-        for (int r = 0; r < mapModel.getRows(); r++) {
-            for (int c = 0; c < mapModel.getCols(); c++) {
-                Cell cell = grid[r][c];
-                if (cell != null && cell.getType() == CellType.PATH) {
-                    gc.setFill(Color.web(Constants.COLOR_PATH));
-                    gc.fillRect(c * cellSize, r * cellSize, cellSize, cellSize);
-                }
-            }
-        }
-    }
 
     public void handleKeyPress(KeyEvent event) {
     }

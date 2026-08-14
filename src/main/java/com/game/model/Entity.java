@@ -4,7 +4,7 @@ import javafx.scene.canvas.GraphicsContext;
 
 /**
  * Lớp cha trừu tượng (Abstract Base Class) đại diện cho mọi thực thể trong game 
- * Tháp phòng thủ, Quái vật, Viên đạn.
+ * tháp, quái, đạn
  */
 public abstract class Entity {
 
@@ -23,32 +23,29 @@ public abstract class Entity {
     }
 
     /**
-     * Cập nhật logic thực thể theo nhịp thời gian thực.
+     * Cập nhật logic thực thể theo thời gian thực.
      * @param deltaTime Khoảng thời gian trôi qua giữa 2 khung hình (tính bằng giây)
      */
     public abstract void update(double deltaTime);
 
     /**
-     * Vẽ đồ họa thực thể lên Canvas.
-     * @param gc Đối tượng đồ họa GraphicsContext của JavaFX
+     * render thực thể
      */
     public abstract void render(GraphicsContext gc);
 
     /**
-     * Kiểm tra thực thể có đang active trên màn hình hay không.
+     * kiểm tra thực thể có đang active trên màn hình hay k
      */
     public boolean isActive() {
         return active;
     }
 
     /**
-     * Thiết lập cờ hoạt động.
+     * thiết lập cờ hoạt động
      */
     public void setActive(boolean active) {
         this.active = active;
     }
-
-    // --- GETTERS & SETTERS ---
 
     public float getX() {
         return x;
@@ -83,8 +80,8 @@ public abstract class Entity {
     }
 
     /**
-     * Tính khoảng cách Euclid từ tâm thực thể này đến thực thể khác.
-     * Thường dùng để tính tầm bắn của Tháp.
+     * tính khoảng cách Euclid từ tâm thực thể này đến thực thể khác
+     * dùng để tính tầm bắn của Tháp
      */
     public float distanceTo(Entity other) {
         float dx = this.x - other.x;
@@ -93,8 +90,8 @@ public abstract class Entity {
     }
 
     /**
-     * Kiểm tra va chạm hình hộp (AABB Collision Detection) giữa 2 thực thể.
-     * Thường dùng để kiểm tra Đạn trúng Quái.
+     * kiểm tra va chạm hình hộp giữa 2 thực thể
+     * để kiểm tra đạn trúng quái
      */
     public boolean overlaps(Entity other) {
         return this.x < other.x + other.width &&

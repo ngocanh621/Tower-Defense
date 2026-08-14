@@ -1,17 +1,17 @@
 package com.game.system;
 
 /**
- * Game events that can be published and subscribed to.
+ * danh sách các sự kiện diễn ra trong game
  */
 public enum GameEvent {
-    ENEMY_DIED,
-    ENEMY_REACHED_BASE,
-    WAVE_STARTED,
-    WAVE_COMPLETED,
-    TOWER_PLACED,
-    TOWER_REMOVED,
-    PLAYER_GOLD_CHANGED,
-    PLAYER_HP_CHANGED,
-    GAME_OVER,
-    GAME_WON
+    ENEMY_DIED,           // quái chết
+    ENEMY_REACHED_BASE,   // quái vô nhà
+    WAVE_STARTED,         // đợt quái mới
+    WAVE_COMPLETED,       // đợt quái kết thúc
+    TOWER_PLACED,         // đặt tháp mới
+    TOWER_REMOVED,        // bán tháp
+    PLAYER_GOLD_CHANGED,  // tiền vàng thay đổi
+    PLAYER_HP_CHANGED,    // máu người chơi thay đổi
+    GAME_OVER,            // thua
+    GAME_WON              // thắng
 }

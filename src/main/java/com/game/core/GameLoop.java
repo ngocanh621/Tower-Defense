@@ -4,8 +4,8 @@ import com.game.util.GameConfig;
 import javafx.animation.AnimationTimer;
 
 /**
- * Vòng lặp game chính.
- * Quản lý chu kỳ update và render.
+ * vòng lặp game chính
+ * quản lý update và render
  */
 public class GameLoop {
 
@@ -44,9 +44,9 @@ public class GameLoop {
     }
 
     /**
-     * Cập nhật logic game cho khung hình hiện tại.
+     * cập nhật logic game cho khung hình hiện tại
      *
-     * @param deltaTime Khoảng thời gian trôi qua giữa 2 khung hình.
+     * @param deltaTime khoảng thời gian trôi qua giữa 2 khung hình
      */
     private void update(double deltaTime) {
         if (sceneManager.getCurrentGame() != null) {

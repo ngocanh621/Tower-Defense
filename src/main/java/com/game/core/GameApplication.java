@@ -6,8 +6,8 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 /**
- * Cổng khởi động chính.
- * Khởi tạo giao diện JavaFX, bộ quản lý SceneManager và GameLoop.
+ * cổng khởi động chính
+ * khởi tạo giao diện , bộ quản lý SceneManager và GameLoop
  */
 public class GameApplication extends Application {
 

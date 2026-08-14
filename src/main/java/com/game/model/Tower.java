@@ -8,8 +8,8 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 /**
- * Đại diện cho Tháp phòng thủ trong game Tower Defense.
- * Tháp tự động tìm kiếm quái vật gần nhất trong tầm bắn và xả đạn.
+ * tháp
+ * tháp tự động tìm kiếm quái gần nhất trong tầm bắn và xả đạn
  */
 public class Tower extends Entity {
 
@@ -51,13 +51,13 @@ public class Tower extends Entity {
     private int totalInvestedGold;
 
     /**
-     * Khởi tạo Tháp phòng thủ tại tọa độ ô vuông
-     * @param gridCol Cột trên bản đồ
-     * @param gridRow Hàng trên bản đồ
-     * @param type Loại tháp (GUN hoặc SLOW)
+     * khởi tạo tháp tại tọa độ ô vuông
+     * @param gridCol cột
+     * @param gridRow hàng 
+     * @param type loại tháp
      */
     public Tower(int gridCol, int gridRow, TowerType type) {
-        // Căn chỉnh tháp vừa vặn chính giữa ô cờ dựa trên GameConfig.TOWER_SIZE
+        // căn chỉnh tháp vừa ô cờ
         super(
             gridCol * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.TOWER_SIZE) / 2f,
             gridRow * GameConfig.GRID_CELL_SIZE + (GameConfig.GRID_CELL_SIZE - GameConfig.TOWER_SIZE) / 2f,
@@ -101,7 +101,7 @@ public class Tower extends Entity {
     }
 
     /**
-     * Giá nâng cấp = 1.5 * giá gốc cho Lv2, 2.25 * giá gốc cho Lv3
+     * giá nâng cấp = 1.5 * giá gốc cho Lv2, 2.25 * giá gốc cho Lv3
      */
     public int getUpgradeCost() {
         if (!canUpgrade()) return 0;
@@ -109,29 +109,29 @@ public class Tower extends Entity {
     }
 
     /**
-     * Giá bán tháp = 70% tổng số vàng đã đầu tư
+     * giá bán = 70% (giá mua + giá đã nâng cấp)
      */
     public int getSellValue() {
         return (int) (totalInvestedGold * 0.7f);
     }
 
     /**
-     * Thực hiện nâng cấp tháp
+     * thực hiện nâng cấp tháp
      */
     public boolean upgrade() {
         if (!canUpgrade()) return false;
         int cost = getUpgradeCost();
         totalInvestedGold += cost;
         level++;
-        // Tăng tầm bắn 15% mỗi cấp
+        // tăng tầm bắn 15% mỗi cấp
         this.range = type.getRange() * (1.0f + (level - 1) * 0.15f);
-        // Tăng tốc độ bắn 10% mỗi cấp
+        // tăng tốc độ bắn 10% mỗi cấp
         this.fireRate = type.getFireRate() * (1.0f + (level - 1) * 0.10f);
         return true;
     }
 
     /**
-     * Nạp ảnh Sprite của tháp từ thư mục tài nguyên resources
+     * nạp ảnh sprite
      */
     private void loadSprite() {
         try (InputStream is = getClass().getResourceAsStream(type.getImagePath())) {
@@ -142,7 +142,6 @@ public class Tower extends Entity {
                 }
             }
         } catch (Exception e) {
-            // Không nạp được ảnh thì sprite sẽ bằng null (chuyển sang chế độ vẽ khối màu)
             this.sprite = null;
         }
     }
@@ -151,21 +150,21 @@ public class Tower extends Entity {
     public void update(double deltaTime) {
         if (!active) return;
 
-        // Giảm thời gian nạp đạn theo thời gian thực (deltaTime)
+        // giảm thời gian nạp đạn theo deltaTime
         if (cooldownTimer > 0) {
             cooldownTimer -= deltaTime;
         }
     }
 
     /**
-     * Kiểm tra xem tháp đã nạp đạn xong để bắn phát tiếp theo chưa
+     * kiểm tra tháp đã nạp đạn xong chưa
      */
     public boolean canFire() {
         return cooldownTimer <= 0;
     }
 
     /**
-     * Đặt lại bộ đếm thời gian hồi chiêu sau khi bắn đạn
+     * đặt lại bộ đếm thời gian hồi chiêu
      */
     public void resetCooldown() {
         if (fireRate > 0) {
@@ -174,7 +173,7 @@ public class Tower extends Entity {
     }
 
     /**
-     * Bắn đạn hướng tới quái vật trong tầm bắn (Sát thương tăng +30% theo từng Level)
+     * bắn đạn hướng tới quái trong tầm bắn (sát thương tăng 30% mỗi cấp)
      */
     public Projectile fire(Enemy target) {
         if (!canFire() || target == null || !isEnemyInRange(target)) {
@@ -186,19 +185,19 @@ public class Tower extends Entity {
         Projectile projectile = new Projectile();
         boolean isSlow = (type == TowerType.SLOW);
 
-        // Tính sát thương dựa trên level (Tăng 30% mỗi cấp)
+        // tính sát thương dựa trên level (tăng 30% mỗi cấp)
         int damage = (int) (GameConfig.PROJECTILE_DAMAGE * (1.0f + (level - 1) * 0.30f));
         projectile.initialize(startX, startY, target, damage, GameConfig.PROJECTILE_SPEED, isSlow);
         return projectile;
     }
 
     /**
-     * Kiểm tra xem con quái (Enemy) có nằm trong tầm bắn của tháp hay không
+     * kiểm tra xem quái có nằm trong tầm bắn của tháp k
      */
     public boolean isEnemyInRange(Enemy enemy) {
         if (enemy == null || !enemy.isActive()) return false;
         
-        // Tính khoảng cách giữa tâm tháp và tâm quái
+        // tính khoảng cách giữa tâm tháp và tâm quái
         float towerCenterX = x + width / 2f;
         float towerCenterY = y + height / 2f;
         float enemyCenterX = enemy.getX() + enemy.getWidth() / 2f;
@@ -215,20 +214,11 @@ public class Tower extends Entity {
     public void render(GraphicsContext gc) {
         if (!active) return;
 
-        // 1. RENDER HÌNH ẢNH SPIRTE NẾU CÓ
         if (sprite != null) {
             gc.drawImage(sprite, x, y, width, height);
-        } else {
-            // FALLBACK: Vẽ khối màu đơn giản nếu chưa có ảnh trong thư mục resources
-            gc.setFill(type.getColor());
-            gc.fillRect(x, y, width, height);
-            
-            gc.setStroke(Color.WHITE);
-            gc.setLineWidth(1.5);
-            gc.strokeRect(x, y, width, height);
         }
 
-        // 2. VẼ NHÃN CẤP ĐỘ (LEVEL BADGE) PHÍA TRÊN THÁP
+        // vẽ nhãn cấp độ phía trên tháp
         gc.setFill(Color.rgb(15, 23, 42, 0.85));
         gc.fillRoundRect(x + width / 2f - 18, y - 6, 36, 15, 6, 6);
         gc.setStroke(level == MAX_LEVEL ? Color.GOLD : Color.CYAN);
@@ -240,7 +230,7 @@ public class Tower extends Entity {
         String levelStr = "Lv." + level;
         gc.fillText(levelStr, x + width / 2f - 11, y + 5);
 
-        // 3. DEBUG MODE: Vẽ vòng tròn đỏ thể hiện tầm bắn (Range)
+        // vẽ vòng tròn đỏ thể hiện tầm bắn
         if (Constants.DEBUG_COLLISION) {
             gc.setStroke(Color.rgb(255, 0, 0, 0.4));
             gc.setLineWidth(1);
