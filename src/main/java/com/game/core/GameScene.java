@@ -317,64 +317,7 @@ public class GameScene {
     /**
      * Vẽ bảng pop-up Game Over chuyên nghiệp
      */
-    private void renderGameOverOverlay() {
-        double width = GameConfig.WINDOW_WIDTH;
-        double height = GameConfig.WINDOW_HEIGHT;
-
-        // 1. Lớp phủ đen mờ toàn màn hình
-        gc.setFill(Color.rgb(0, 0, 0, 0.75));
-        gc.fillRect(0, 0, width, height);
-
-        // 2. Kích thước & Vị trí khung bảng điểm
-        double boxW = 440;
-        double boxH = 290;
-        double boxX = (width - boxW) / 2;
-        double boxY = (height - boxH) / 2;
-
-        // Nền khung bảng
-        gc.setFill(Color.web("#1e293b"));
-        gc.fillRoundRect(boxX, boxY, boxW, boxH, 20, 20);
-
-        // Viền khung: Vàng đồng nếu lập kỷ lục, Xám sẫm nếu bình thường
-        gc.setStroke(isNewRecord ? Color.web("#f59e0b") : Color.web("#475569"));
-        gc.setLineWidth(3.5);
-        gc.strokeRoundRect(boxX, boxY, boxW, boxH, 20, 20);
-
-        // 3. Tiêu đề "GAME OVER"
-        gc.setFill(Color.web("#ef4444"));
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 38));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.fillText("GAME OVER", width / 2, boxY + 55);
-
-        // 4. Nếu đạt kỷ lục mới -> Dòng thông báo chúc mừng đặc biệt
-        if (isNewRecord) {
-            gc.setFill(Color.web("#f59e0b"));
-            gc.setFont(Font.font("Arial", FontWeight.BOLD, 19));
-            gc.fillText("🎉 CHÚC MỪNG KỶ LỤC MỚI! 🎉", width / 2, boxY + 95);
-        } else {
-            gc.setFill(Color.web("#94a3b8"));
-            gc.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
-            gc.fillText("Tháp của bạn đã bị tiêu diệt!", width / 2, boxY + 95);
-        }
-
-        // 5. Hiển thị Điểm số hiện tại & Best Score
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 20));
-        gc.setFill(Color.WHITE);
-        gc.fillText("Score: " + finalScore, width / 2, boxY + 145);
-
-        int bestScore = SceneManager.loadHighScore();
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        gc.setFill(Color.web("#f59e0b"));
-        gc.fillText("🏆 Best Score: " + bestScore, width / 2, boxY + 180);
-
-        // 6. Hướng dẫn nút bấm
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 14));
-        gc.setFill(Color.web("#cbd5e1"));
-        gc.fillText("Nhấn [ ESC ] để trở về Menu chính", width / 2, boxY + 245);
-
-        // Reset alignment về LEFT mặc định để tránh ảnh hưởng đoạn render khác
-        gc.setTextAlign(TextAlignment.LEFT);
-    }
+    private void renderGameOverOverlay() {}
 
     /**
      * Duyệt danh sách và vẽ các hiệu ứng nổ
