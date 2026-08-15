@@ -28,7 +28,7 @@ public class SoundManager {
 
     /**
      * Phát nhạc nền phát lặp lại (Loop)
-     * @param soundPath Đường dẫn tệp audio trong resources (ví dụ: "/audio/mainMenu.mp3")
+     * @param soundPath Đường dẫn tệp audio trong resources
      */
     public void playBGM(String soundPath) {
         // Nếu bài nhạc này đang phát thì không khởi tạo lại để tránh ngắt đoạn
@@ -76,7 +76,7 @@ public class SoundManager {
 
     /**
      * Phát hiệu ứng âm thanh ngắn bằng đường dẫn file
-     * @param soundPath Đường dẫn đến file âm thanh trong resources (ví dụ: "/audio/goblin_death.mp3")
+     * @param soundPath Đường dẫn đến file âm thanh trong resources
      */
     public void playSFX(String soundPath) {
         if (soundPath == null || soundPath.isEmpty()) return;

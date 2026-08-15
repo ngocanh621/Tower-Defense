@@ -2,7 +2,7 @@ package com.game.util;
 import javafx.scene.image.Image;
 
 /**
- * Lớp quản lý hiệu ứng chuyển động (Animation) dựa trên mảng các ảnh.
+ * Lớp quản lý hiệu ứng chuyển động dựa trên mảng các ảnh.
  */
 
 public class Animation {
@@ -16,7 +16,7 @@ public class Animation {
     /**
      * Khởi tạo một Animation cơ bản với cờ lặp lại mặc định là true.
      * @param frames Mảng chứa các Image của animation
-     * @param frameDuration Thời gian chuyển cảnh giữa các frame (ví dụ: 0.15s)
+     * @param frameDuration Thời gian chuyển cảnh giữa các frame
      */
     public Animation(Image[] frames, double frameDuration) {
         this(frames, frameDuration, true);
