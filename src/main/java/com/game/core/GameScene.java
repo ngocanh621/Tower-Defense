@@ -35,10 +35,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
-import javafx.scene.paint.LinearGradient;
-import javafx.scene.paint.CycleMethod;
-import javafx.scene.paint.Stop;
-
 public class GameScene {
 
     private final Canvas canvas;
@@ -72,17 +68,11 @@ public class GameScene {
     private int finalScore = 0;
     private int leakedInCurrentWave = 0;
 
-    //Biến chứa ảnh logo và tham chiếu đến SceneManager để chuyển cảnh
-    private SceneManager sceneManager;
-    private Image logoImage;
-
-    public GameScene(Canvas canvas, GraphicsContext gc, SceneManager sceneManager) {
+    public GameScene(Canvas canvas, GraphicsContext gc) {
         this.canvas = canvas;
         this.gc = gc;
-        this.sceneManager = sceneManager;
         this.mapModel = new MapModel();
         this.mapImage = loadMapImage();
-        this.logoImage = loadLogoImage();
         this.waveManager = new WaveManager();
         this.playerState = new PlayerState();
         this.hudRenderer = new HudRenderer();
@@ -163,23 +153,6 @@ public class GameScene {
             }
         }
 
-        return null;
-    }
-
-    private Image loadLogoImage() {
-        String[] candidates = {"/assets/logo.png", "/assets/logo.jpg", "/assets/MainScreen.png"};
-        for (String path : candidates) {
-            try (InputStream is = getClass().getResourceAsStream(path)) {
-                if (is != null) {
-                    Image image = new Image(is);
-                    if (!image.isError()) {
-                        return image;
-                    }
-                }
-            } catch (Exception e) {
-                // Bỏ qua lỗi load ảnh
-            }
-        }
         return null;
     }
 
@@ -342,105 +315,9 @@ public class GameScene {
     }
 
     /**
-     * Vẽ bảng Game Over
+     * Vẽ bảng pop-up Game Over chuyên nghiệp
      */
-    private void renderGameOverOverlay() {
-        double width = GameConfig.WINDOW_WIDTH;
-        double height = GameConfig.WINDOW_HEIGHT;
-
-        // 1. Phủ tối màn hình
-        gc.setFill(Color.rgb(0, 0, 0, 0.70));
-        gc.fillRect(0, 0, width, height);
-
-        double centerX = width / 2;
-
-        // 2. Logo Game
-        if (logoImage != null && !logoImage.isError()) {
-            double logoW = 360;
-            double logoH = logoW * (logoImage.getHeight() / logoImage.getWidth());
-            gc.drawImage(logoImage, centerX - logoW / 2, height * 0.10, logoW, logoH);
-        }
-
-        // 3. Khung Bảng điểm gỗ (Wooden Score Board)
-        double boardW = 380, boardH = 150;
-        double boardX = centerX - boardW / 2;
-        double boardY = height * 0.38;
-
-        // Nền gỗ + viền vàng
-        gc.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.web("#4a2810")), new Stop(1, Color.web("#2b1406"))));
-        gc.fillRoundRect(boardX, boardY, boardW, boardH, 18, 18);
-        gc.setStroke(Color.web("#d4af37"));
-        gc.setLineWidth(3.5);
-        gc.strokeRoundRect(boardX, boardY, boardW, boardH, 18, 18);
-
-        // Tiêu đề GAME OVER
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setFont(Font.font("Arial", FontWeight.EXTRA_BOLD, 28));
-        gc.setFill(Color.web("#f97316"));
-        gc.fillText("GAME OVER", centerX, boardY + 35);
-
-        // Score
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 22));
-        gc.setFill(Color.WHITE);
-        gc.fillText("FINAL SCORE: " + finalScore, centerX, boardY + 72);
-
-        // BEST SCORE (Khung bo tròn)
-        int bestScore = SceneManager.loadHighScore();
-        gc.setFill(Color.web("#1c1512"));
-        gc.fillRoundRect(centerX - 135, boardY + 95, 270, 36, 20, 20);
-        gc.setStroke(Color.web("#fbbf24"));
-        gc.setLineWidth(2);
-        gc.strokeRoundRect(centerX - 135, boardY + 95, 270, 36, 20, 20);
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 18));
-        gc.setFill(Color.web("#fbbf24"));
-        gc.fillText("🏆 BEST SCORE: " + bestScore, centerX, boardY + 119);
-
-        // 4. Hai Nút Bấm Gỗ
-        double btnW = 320, btnH = 52, btnX = centerX - btnW / 2;
-        drawGameOverlayButton(btnX, boardY + boardH + 25, btnW, btnH, "🔄   RETRY GAME");
-        drawGameOverlayButton(btnX, boardY + boardH + 92, btnW, btnH, "⚔   MAIN MENU");
-
-        gc.setTextAlign(TextAlignment.LEFT);
-    }
-
-    // Hàm vẽ nút gỗ phụ trợ
-    private void drawGameOverlayButton(double x, double y, double w, double h, String text) {
-        // 1. Vẽ bóng đổ màu cam/vàng phát sáng phía sau nút (Tạo hiệu ứng nổi)
-        gc.setFill(Color.web("#d97706", 0.35));
-        gc.fillRoundRect(x - 3, y - 3, w + 6, h + 6, 16, 16);
-
-        // 2. Viền ngoài bóng bẩy màu viền vàng sáng
-        gc.setFill(Color.web("#fbbf24"));
-        gc.fillRoundRect(x - 2, y - 2, w + 4, h + 4, 14, 14);
-
-        // 3. Viền tối đệm bên trong
-        gc.setFill(Color.web("#2b1406"));
-        gc.fillRoundRect(x - 1, y - 1, w + 2, h + 2, 13, 13);
-
-        // 4. Nền nút Gradient 3D (Đỉnh sáng, đáy tối rõ rệt)
-        gc.setFill(new LinearGradient(0, 0, 0, 1, true, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.web("#a15325")),   // Nâu cam sáng ở trên
-                new Stop(0.45, Color.web("#6e3111")), // Nâu trầm trung gian
-                new Stop(1, Color.web("#3d1806"))));   // Nâu đậm ở đáy
-        gc.fillRoundRect(x, y, w, h, 12, 12);
-
-        // 5. Đường gờ phản quang 3D ở mép trên (Highlight line)
-        gc.setFill(Color.web("#fcd34d", 0.40));
-        gc.fillRoundRect(x + 3, y + 2, w - 6, 3, 3, 3);
-
-        // 6. Vẽ Chữ và Icon nổi bật
-        gc.setFont(Font.font("Arial", FontWeight.BOLD, 19));
-
-        // Bóng chữ màu đen
-        gc.setFill(Color.web("#1c0a00"));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.fillText(text, x + w / 2 + 1, y + h / 2 + 7);
-
-        // Chữ chính màu kem sáng
-        gc.setFill(Color.web("#ffedd5"));
-        gc.fillText(text, x + w / 2, y + h / 2 + 6);
-    }
+    private void renderGameOverOverlay() {}
 
     /**
      * Duyệt danh sách và vẽ các hiệu ứng nổ
@@ -498,15 +375,11 @@ public class GameScene {
      * Xử lý sự kiện click chuột để đặt Tháp hoặc mở Menu chọn/quản lý Tháp
      */
     public void handleMouseClick(MouseEvent event) {
+        if (isGameOver) return; // Khóa tương tác chuột khi thua
         if (event.getButton() != MouseButton.PRIMARY) return;
 
         double mouseX = event.getX();
         double mouseY = event.getY();
-
-        if (isGameOver) {
-            handleGameOverClick(mouseX, mouseY);
-            return;
-        }
 
         int col = (int) (mouseX / GameConfig.GRID_CELL_SIZE);
         int row = (int) (mouseY / GameConfig.GRID_CELL_SIZE);
@@ -574,26 +447,6 @@ public class GameScene {
         } else {
             this.selectedCol = -1;
             this.selectedRow = -1;
-        }
-    }
-
-    /**
-     * Xử lý sự kiện click nút tại GameOver
-     */
-    private void handleGameOverClick(double mouseX, double mouseY) {
-        double centerX = GameConfig.WINDOW_WIDTH / 2.0;
-        double boardY = GameConfig.WINDOW_HEIGHT * 0.38;
-        double btnW = 320, btnH = 52, btnX = centerX - btnW / 2;
-
-        double btn1Y = boardY + 150 + 25; // Nút RETRY
-        double btn2Y = btn1Y + btnH + 15; // Nút MENU
-
-        if (mouseX >= btnX && mouseX <= btnX + btnW) {
-            if (mouseY >= btn1Y && mouseY <= btn1Y + btnH && sceneManager != null) {
-                sceneManager.switchToGameScene(); // Bấm RETRY
-            } else if (mouseY >= btn2Y && mouseY <= btn2Y + btnH && sceneManager != null) {
-                sceneManager.switchToMenuScene(); // Bấm MENU
-            }
         }
     }
 

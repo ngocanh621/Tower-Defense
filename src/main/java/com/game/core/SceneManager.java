@@ -1,5 +1,7 @@
 package com.game.core;
 
+import com.game.system.EventBus;
+import com.game.system.GameEvent;
 import com.game.util.Constants;
 import com.game.util.GameConfig;
 import com.game.system.SoundManager;
@@ -203,6 +205,13 @@ public class SceneManager {
         GameScene gameScene = new GameScene(gameCanvas, gc, this);
         this.currentGame = gameScene;
 
+        // Lắng nghe khi GameScene phát tín hiệu GAME_OVER
+        EventBus.getInstance().subscribe(GameEvent.GAME_OVER, data -> {
+            if (data instanceof Integer score) {
+                switchToGameOverScene(score);
+            }
+        });
+
         root.setCenter(gameCanvas);
 
         Scene scene = new Scene(root, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
@@ -236,6 +245,131 @@ public class SceneManager {
 
         Scene gameScene = createGameScene();
         primaryStage.setScene(gameScene);
+    }
+
+    /**
+     * Chuyển sang màn hình Game Over khi chơi thua
+     */
+    public void switchToGameOverScene(int score) {
+        Scene gameOverScene = createGameOverScene(score);
+        primaryStage.setScene(gameOverScene);
+        this.currentGame = null;
+    }
+
+    /**
+     * Tạo Scene Game Over đồng bộ phong cách thiết kế với Main Menu
+     */
+    public Scene createGameOverScene(int finalScore) {
+        // === ĐỔI SANG NHẠC GAME OVER (Nếu có) ===
+        // SoundManager.getInstance().playBGM("/audio/gameOverMusic.mp3");
+
+        StackPane root = new StackPane();
+
+        // 1. Nạp ảnh nền
+        String bgPath = getClass().getResource("/assets/MainScreen.png") != null
+                ? getClass().getResource("/assets/MainScreen.png").toExternalForm()
+                : "";
+
+        if (!bgPath.isEmpty()) {
+            root.setStyle("-fx-background-image: url('" + bgPath + "'); "
+                    + "-fx-background-size: cover; "
+                    + "-fx-background-position: center center;");
+        } else {
+            root.setStyle("-fx-background-color: #0f172a;");
+        }
+
+        // 2. Lớp phủ mờ tối màu hơn
+        StackPane overlay = new StackPane();
+        overlay.setStyle("-fx-background-color: rgba(15, 23, 42, 0.75);");
+
+        // 3. Tiêu đề GAME OVER
+        Label gameOverLabel = new Label("GAME OVER");
+        gameOverLabel.setStyle(
+                "-fx-font-family: 'Arial'; -fx-font-size: 50px; -fx-font-weight: bold; "
+                        + "-fx-text-fill: linear-gradient(to bottom, #ef4444, #991b1b); "
+                        + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.9), 10, 0, 0, 4);"
+        );
+
+        VBox headerBox = new VBox(gameOverLabel);
+        headerBox.setAlignment(Pos.CENTER);
+
+        DropShadow titleShadow = new DropShadow();
+        titleShadow.setColor(Color.rgb(0, 0, 0, 0.8));
+        titleShadow.setRadius(15);
+        titleShadow.setOffsetY(5);
+        headerBox.setEffect(titleShadow);
+
+        // 4. Kiểm tra và Cập nhật High Score
+        int currentBest = loadHighScore();
+        boolean isNewHighScore = finalScore > currentBest;
+        if (isNewHighScore) {
+            saveHighScore(finalScore);
+            currentBest = finalScore;
+        }
+
+        // 5. Khung hiển thị điểm (Score Card Panel)
+        Label currentScoreLabel = createBadgeLabel("🎯 YOUR SCORE: " + finalScore, "#38bdf8");
+        Label bestScoreLabel = createBadgeLabel("🏆 BEST SCORE: " + currentBest, "#f59e0b");
+
+        VBox scoreCard = new VBox(10, currentScoreLabel, bestScoreLabel);
+        scoreCard.setAlignment(Pos.CENTER);
+        scoreCard.setStyle(
+                "-fx-background-color: rgba(30, 41, 59, 0.9); "
+                        + "-fx-padding: 16px 30px; -fx-background-radius: 12px; "
+                        + "-fx-border-color: #b07d62; -fx-border-radius: 12px; -fx-border-width: 2px; "
+                        + "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.6), 10, 0, 0, 4);"
+        );
+
+        if (isNewHighScore) {
+            Label newRecordBadge = new Label("🎉 NEW HIGH SCORE! 🎉");
+            newRecordBadge.setStyle(
+                    "-fx-font-family: 'Arial'; -fx-font-size: 16px; -fx-font-weight: bold; "
+                            + "-fx-text-fill: #10b981; -fx-padding: 0 0 5px 0;"
+            );
+            scoreCard.getChildren().add(0, newRecordBadge);
+        }
+
+        // 6. Các nút bấm điều hướng
+        Button restartBtn = createStyledButton("🔄  PLAY AGAIN");
+        restartBtn.setOnAction(e -> switchToGameScene());
+
+        Button menuBtn = createStyledButton("🏠  MAIN MENU");
+        menuBtn.setOnAction(e -> switchToMenuScene());
+
+        Button quitBtn = createStyledButton("❌  QUIT GAME");
+        quitBtn.setOnAction(e -> System.exit(0));
+
+        // 7. Gom tất cả vào VBox trung tâm
+        VBox gameOverBox = new VBox(16, headerBox, scoreCard, restartBtn, menuBtn, quitBtn);
+        gameOverBox.setAlignment(Pos.CENTER);
+        gameOverBox.setMaxWidth(480);
+
+        root.getChildren().addAll(overlay, gameOverBox);
+
+        Scene scene = new Scene(root, GameConfig.WINDOW_WIDTH, GameConfig.WINDOW_HEIGHT);
+        scene.setOnKeyPressed(event -> {
+            switch (event.getCode()) {
+                case SPACE, ENTER -> switchToGameScene();
+                case ESCAPE -> switchToMenuScene();
+                default -> {}
+            }
+        });
+
+        return scene;
+    }
+
+    /**
+     * Hàm phụ trợ tạo nhãn Badge hiển thị điểm số
+     */
+    private Label createBadgeLabel(String text, String colorHex) {
+        Label label = new Label(text);
+        label.setStyle(
+                "-fx-font-family: 'Arial'; -fx-font-size: 18px; -fx-font-weight: bold; "
+                        + "-fx-text-fill: " + colorHex + "; -fx-background-color: rgba(15, 23, 42, 0.7); "
+                        + "-fx-padding: 6px 20px; -fx-background-radius: 15px; "
+                        + "-fx-border-color: " + colorHex + "; -fx-border-radius: 15px; -fx-border-width: 1.5px;"
+        );
+        return label;
     }
 
     public GameScene getCurrentGame() {
