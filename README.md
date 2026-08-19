@@ -20,7 +20,7 @@
 ## Giới Thiệu (Description)
 
 Stone Guardians là một dự án game Tower Defense 2D hiện đại được phát triển hoàn toàn bằng Java và JavaFX. Đây là đồ án được thực hiện nhằm mục đích làm bài tập lớn cuối kỳ cho môn học Lập trình nâng cao.
-
+Video demo game: https://drive.google.com/file/d/1t7xwx29vGW3y08vkTYDBHcME_RZ4yvil/view?usp=sharing
 ---
 
 ## Các Tính Năng Chính (Key Features)
